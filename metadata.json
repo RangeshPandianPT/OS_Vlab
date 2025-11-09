@@ -1,0 +1,5 @@
+{
+  "name": "OS_VLab",
+  "description": "An interactive web platform for visualizing Operating System concepts and algorithms. OS_VLab helps students and teachers see, interact with, and understand how OS mechanisms work through real-time visualization, simulation, and analytics.",
+  "requestFramePermissions": []
+}

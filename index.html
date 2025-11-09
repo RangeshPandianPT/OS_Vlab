@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>OS_VLab - Operating System Virtual Laboratory</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            colors: {
+              'bkg-light': '#f0f4f8',
+              'bkg-dark': '#0d1117',
+              'card-light': 'rgba(255, 255, 255, 0.6)',
+              'card-dark': 'rgba(23, 27, 34, 0.6)',
+              'border-light': 'rgba(209, 213, 219, 0.3)',
+              'border-dark': 'rgba(49, 54, 63, 0.3)',
+              'text-light': '#1f2937',
+              'text-dark': '#e5e7eb',
+              'text-muted-light': '#6b7280',
+              'text-muted-dark': '#9ca3af',
+              'accent': '#3b82f6',
+              'accent-hover': '#2563eb',
+            },
+            fontFamily: {
+              sans: ['Inter', 'sans-serif'],
+            },
+            backdropBlur: {
+              xl: '24px',
+            },
+          },
+        },
+      };
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@500;600;700&display=swap" rel="stylesheet">
+  <script type="importmap">
+{
+  "imports": {
+    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.552.0",
+    "recharts": "https://aistudiocdn.com/recharts@^3.3.0",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "firebase/app": "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js",
+    "firebase/auth": "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js",
+    "firebase/": "https://aistudiocdn.com/firebase@^12.5.0/",
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.28.0"
+  }
+}
+</script>
+<link rel="stylesheet" href="/index.css">
+</head>
+  <body class="bg-bkg-light dark:bg-bkg-dark text-text-light dark:text-text-dark font-sans transition-colors duration-300">
+    <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
+  </body>
+</html>
