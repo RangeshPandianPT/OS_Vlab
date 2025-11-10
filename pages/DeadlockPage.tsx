@@ -757,42 +757,78 @@ const DeadlockPage: React.FC = () => {
         <div className="lg:col-span-1 space-y-4 lg:space-y-6">
             <Card className="p-4 sm:p-6">
                  <h2 className="text-lg sm:text-xl font-semibold mb-4 flex items-center gap-2">
-                   <Info className="text-accent" size={20} />
+                   <Info className="text-red-500" size={20} />
                    Controls
                  </h2>
-                 <div className="grid grid-cols-2 gap-2">
-                     <button onClick={resetSimulation} className="btn-secondary text-xs sm:text-sm">
-                       <RotateCcw size={16} className="hidden sm:block" />
-                       <span>Reset</span>
-                     </button>
-                     <button onClick={handleAddProcess} className="btn-secondary text-xs sm:text-sm">
-                       <Plus size={16} className="hidden sm:block" />
+                 
+                 {/* Reset Control */}
+                 <div className="mb-4 p-3 rounded-lg bg-gradient-to-br from-gray-500/5 to-gray-600/5 border border-gray-300 dark:border-gray-700">
+                   <h3 className="text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2 flex items-center gap-1">
+                     <RotateCcw size={14} />
+                     System Control
+                   </h3>
+                   <button onClick={resetSimulation} className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-gradient-to-r from-gray-600 to-gray-700 text-white font-semibold rounded-lg hover:from-gray-700 hover:to-gray-800 transition-all duration-300 shadow-md hover:shadow-lg hover:scale-105">
+                     <RotateCcw size={16} />
+                     <span>Reset Simulation</span>
+                   </button>
+                 </div>
+
+                 {/* Add Resources */}
+                 <div className="mb-4 p-3 rounded-lg bg-gradient-to-br from-orange-500/5 to-red-500/5 border border-orange-300 dark:border-orange-700">
+                   <h3 className="text-xs font-semibold text-orange-600 dark:text-orange-400 mb-2 flex items-center gap-1">
+                     <Plus size={14} />
+                     Add Elements
+                   </h3>
+                   <div className="grid grid-cols-2 gap-2">
+                     <button onClick={handleAddProcess} className="flex items-center justify-center gap-2 px-3 py-2 bg-gradient-to-r from-orange-500 to-red-500 text-white font-semibold rounded-lg hover:from-orange-600 hover:to-red-600 transition-all duration-300 shadow-md hover:shadow-lg hover:scale-105 text-xs sm:text-sm">
+                       <Plus size={16} />
                        <span>Process</span>
                      </button>
-                     <button onClick={() => setModal('addResource')} className="btn-secondary text-xs sm:text-sm">
-                       <Plus size={16} className="hidden sm:block" />
+                     <button onClick={() => setModal('addResource')} className="flex items-center justify-center gap-2 px-3 py-2 bg-gradient-to-r from-red-500 to-orange-600 text-white font-semibold rounded-lg hover:from-red-600 hover:to-orange-700 transition-all duration-300 shadow-md hover:shadow-lg hover:scale-105 text-xs sm:text-sm">
+                       <Plus size={16} />
                        <span>Resource</span>
                      </button>
-                     <button onClick={() => setModal('request')} className="btn-secondary text-xs sm:text-sm" disabled={processes.length === 0 || resources.length === 0}>
-                       <Link size={16} className="hidden sm:block" />
+                   </div>
+                 </div>
+
+                 {/* Resource Operations */}
+                 <div className="mb-4 p-3 rounded-lg bg-gradient-to-br from-red-500/5 to-amber-500/5 border border-red-300 dark:border-red-700">
+                   <h3 className="text-xs font-semibold text-red-600 dark:text-red-400 mb-2 flex items-center gap-1">
+                     <Link size={14} />
+                     Resource Operations
+                   </h3>
+                   <div className="grid grid-cols-2 gap-2">
+                     <button onClick={() => setModal('request')} disabled={processes.length === 0 || resources.length === 0} className="flex items-center justify-center gap-2 px-3 py-2 bg-gradient-to-r from-red-500 to-rose-600 text-white font-semibold rounded-lg hover:from-red-600 hover:to-rose-700 transition-all duration-300 shadow-md hover:shadow-lg hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 text-xs sm:text-sm">
+                       <Link size={16} />
                        <span>Request</span>
                      </button>
-                     <button onClick={() => setModal('release')} className="btn-secondary text-xs sm:text-sm" disabled={allocations.length === 0}>
-                       <Unlink size={16} className="hidden sm:block" />
+                     <button onClick={() => setModal('release')} disabled={allocations.length === 0} className="flex items-center justify-center gap-2 px-3 py-2 bg-gradient-to-r from-amber-500 to-orange-600 text-white font-semibold rounded-lg hover:from-amber-600 hover:to-orange-700 transition-all duration-300 shadow-md hover:shadow-lg hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 text-xs sm:text-sm">
+                       <Unlink size={16} />
                        <span>Release</span>
                      </button>
-                     <button onClick={() => setModal('banker')} className="btn-primary col-span-2 text-xs sm:text-sm">
-                       <ShieldCheck size={16} />
-                       <span>Banker's Algorithm</span>
-                     </button>
+                   </div>
                  </div>
+
+                 {/* Banker's Algorithm */}
+                 <div className="mb-4 p-3 rounded-lg bg-gradient-to-br from-green-500/5 to-emerald-500/5 border border-green-300 dark:border-green-700">
+                   <h3 className="text-xs font-semibold text-green-600 dark:text-green-400 mb-2 flex items-center gap-1">
+                     <ShieldCheck size={14} />
+                     Safety Check
+                   </h3>
+                   <button onClick={() => setModal('banker')} className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-semibold rounded-lg hover:from-green-600 hover:to-emerald-700 transition-all duration-300 shadow-md hover:shadow-lg hover:scale-105 text-xs sm:text-sm">
+                     <ShieldCheck size={16} />
+                     <span>Banker's Algorithm</span>
+                   </button>
+                 </div>
+
+                 {/* Deadlock Alert */}
                  {deadlockedInfo.cycles.length > 0 && (
-                     <div className="mt-4 p-3 sm:p-4 rounded-lg flex items-start sm:items-center gap-3 bg-gradient-to-br from-red-500/20 to-orange-500/20 border-2 border-red-500 animate-pulse">
+                     <div className="p-3 sm:p-4 rounded-lg flex items-start sm:items-center gap-3 bg-gradient-to-br from-red-500/20 to-orange-500/20 border-2 border-red-500 animate-pulse">
                          <AlertTriangle size={24} className="text-red-600 dark:text-red-400 flex-shrink-0" />
                          <div className="flex-grow">
                              <h3 className="font-bold text-sm sm:text-base text-red-600 dark:text-red-400">Deadlock Detected!</h3>
                              <p className="text-xs text-red-700 dark:text-red-300 mb-2">Circular wait found in resource graph</p>
-                             <button onClick={() => setModal('resolve')} className="text-xs sm:text-sm font-semibold px-3 py-1 rounded-md bg-red-600 text-white hover:bg-red-700 transition-colors">
+                             <button onClick={() => setModal('resolve')} className="text-xs sm:text-sm font-semibold px-3 py-2 rounded-md bg-gradient-to-r from-red-600 to-red-700 text-white hover:from-red-700 hover:to-red-800 transition-all duration-300 shadow-md hover:shadow-lg">
                                Resolve Now
                              </button>
                          </div>
