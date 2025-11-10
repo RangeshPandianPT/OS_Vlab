@@ -1,6 +1,3 @@
-<div align="center">
-  <img alt="OS_VLab banner" src="/assets/gh-banner.png" style="max-width:100%;height:auto;"/>
-</div>
 
 # OS_VLab — Operating Systems Virtual Laboratory
 
