@@ -78,11 +78,16 @@ const ResourceAllocationGraph: React.FC<{
                 <path
                     key={edge.key}
                     d={`M ${edge.x1} ${edge.y1} L ${edge.x2} ${edge.y2}`}
-                    className={`fill-none ${edge.isDeadlocked ? 'stroke-red-500 text-red-500' : 'stroke-gray-400 dark:stroke-gray-500 text-gray-400 dark:text-gray-500'}`}
-                    strokeWidth="2"
+                    className={`fill-none transition-all duration-500 ${edge.isDeadlocked ? 'stroke-red-500 text-red-500' : edge.type === 'request' ? 'stroke-blue-400 dark:stroke-blue-500 text-blue-400 dark:text-blue-500' : 'stroke-green-400 dark:stroke-green-500 text-green-400 dark:text-green-500'}`}
+                    strokeWidth={edge.isDeadlocked ? "3" : "2"}
                     strokeDasharray={edge.type === 'request' ? '8 4' : 'none'}
                     markerEnd="url(#arrow)"
-                />
+                    opacity={edge.isDeadlocked ? 1 : 0.7}
+                >
+                  {edge.isDeadlocked && (
+                    <animate attributeName="stroke-dashoffset" from="0" to="20" dur="1s" repeatCount="indefinite" />
+                  )}
+                </path>
             ))}
             {/* Nodes */}
             {processes.map(p => {
@@ -90,9 +95,12 @@ const ResourceAllocationGraph: React.FC<{
                 if (!pos) return null;
                 const isDeadlocked = deadlockedNodes.has(`P${p.id}`);
                 return (
-                    <g key={`P${p.id}`} transform={`translate(${pos.x}, ${pos.y})`}>
-                        <circle cx="0" cy="0" r={P_RADIUS} className={`stroke-2 ${isDeadlocked ? 'fill-red-500/10 stroke-red-500' : 'fill-bkg-light dark:fill-bkg-dark stroke-accent'}`} />
-                        <text textAnchor="middle" dy=".3em" className="font-bold fill-current">{p.name}</text>
+                    <g key={`P${p.id}`} transform={`translate(${pos.x}, ${pos.y})`} className="transition-all duration-500">
+                        <circle cx="0" cy="0" r={P_RADIUS + 3} className={`${isDeadlocked ? 'fill-red-500/20' : 'fill-transparent'}`}>
+                          {isDeadlocked && <animate attributeName="r" values={`${P_RADIUS + 3};${P_RADIUS + 8};${P_RADIUS + 3}`} dur="2s" repeatCount="indefinite" />}
+                        </circle>
+                        <circle cx="0" cy="0" r={P_RADIUS} className={`stroke-2 transition-all duration-500 ${isDeadlocked ? 'fill-red-500/20 stroke-red-500' : 'fill-blue-500/10 stroke-blue-500'}`} />
+                        <text textAnchor="middle" dy=".3em" className={`font-bold text-sm sm:text-base ${isDeadlocked ? 'fill-red-600 dark:fill-red-400' : 'fill-current'}`}>{p.name}</text>
                     </g>
                 );
             })}
@@ -101,14 +109,17 @@ const ResourceAllocationGraph: React.FC<{
                 if (!pos) return null;
                 const isDeadlocked = deadlockedNodes.has(`R${r.id}`);
                 return (
-                    <g key={`R${r.id}`} transform={`translate(${pos.x}, ${pos.y})`}>
-                        <rect x={-R_WIDTH / 2} y={-R_HEIGHT / 2} width={R_WIDTH} height={R_HEIGHT} className={`stroke-2 ${isDeadlocked ? 'fill-red-500/10 stroke-red-500' : 'fill-bkg-light dark:fill-bkg-dark stroke-green-500'}`} />
-                        <text textAnchor="middle" y={-R_HEIGHT / 2 - 8} className="font-bold fill-current">{r.name}</text>
+                    <g key={`R${r.id}`} transform={`translate(${pos.x}, ${pos.y})`} className="transition-all duration-500">
+                        <rect x={-R_WIDTH / 2 - 3} y={-R_HEIGHT / 2 - 3} width={R_WIDTH + 6} height={R_HEIGHT + 6} className={`${isDeadlocked ? 'fill-red-500/20' : 'fill-transparent'}`} rx="4">
+                          {isDeadlocked && <animate attributeName="opacity" values="0.2;0.5;0.2" dur="2s" repeatCount="indefinite" />}
+                        </rect>
+                        <rect x={-R_WIDTH / 2} y={-R_HEIGHT / 2} width={R_WIDTH} height={R_HEIGHT} rx="4" className={`stroke-2 transition-all duration-500 ${isDeadlocked ? 'fill-red-500/20 stroke-red-500' : 'fill-green-500/10 stroke-green-500'}`} />
+                        <text textAnchor="middle" y={-R_HEIGHT / 2 - 10} className={`font-bold text-xs sm:text-sm ${isDeadlocked ? 'fill-red-600 dark:fill-red-400' : 'fill-current'}`}>{r.name}</text>
                         {Array.from({ length: r.totalInstances }).map((_, i) => {
                             const cols = Math.ceil(Math.sqrt(r.totalInstances));
                             const x = (i % cols) * 10 - (cols - 1) * 5;
                             const y = Math.floor(i / cols) * 10 - (Math.ceil(r.totalInstances / cols) - 1) * 5;
-                            return <circle key={i} cx={x} cy={y} r="3" className="fill-current" />;
+                            return <circle key={i} cx={x} cy={y} r="3" className={`transition-all duration-300 ${isDeadlocked ? 'fill-red-400' : 'fill-green-600 dark:fill-green-400'}`} />;
                         })}
                     </g>
                 );
@@ -503,6 +514,43 @@ const DeadlockPage: React.FC = () => {
   const addLog = useCallback((message: string, type: LogEntry['type']) => {
       setLog(prev => [{ id: Date.now(), message, type, timestamp: new Date().toLocaleTimeString() }, ...prev].slice(0, 100));
   }, []);
+
+  const loadScenario = (scenario: 'circular' | 'safe' | 'unsafe') => {
+    resetSimulation();
+    
+    if (scenario === 'circular') {
+      // Circular Wait Example: P0 -> R0 -> P1 -> R1 -> P0
+      setProcesses([{ id: 0, name: 'P0' }, { id: 1, name: 'P1' }]);
+      setResources([{ id: 0, name: 'R0', totalInstances: 1 }, { id: 1, name: 'R1', totalInstances: 1 }]);
+      setAllocations([{ processId: 0, resourceId: 1, instances: 1 }, { processId: 1, resourceId: 0, instances: 1 }]);
+      setRequests([{ processId: 0, resourceId: 0, instances: 1 }, { processId: 1, resourceId: 1, instances: 1 }]);
+      addLog('Loaded Circular Wait example - deadlock!', 'warning');
+    } else if (scenario === 'safe') {
+      // Safe State Example for Banker's Algorithm
+      setProcesses([{ id: 0, name: 'P0' }, { id: 1, name: 'P1' }, { id: 2, name: 'P2' }]);
+      setResources([{ id: 0, name: 'R0', totalInstances: 10 }]);
+      setBankerState({
+        processCount: 3,
+        resourceCount: 1,
+        allocation: [[2], [3], [2]],
+        max: [[7], [5], [4]],
+        available: [3]
+      });
+      addLog('Loaded Safe State example for Banker\'s Algorithm', 'success');
+    } else if (scenario === 'unsafe') {
+      // Unsafe State Example
+      setProcesses([{ id: 0, name: 'P0' }, { id: 1, name: 'P1' }, { id: 2, name: 'P2' }]);
+      setResources([{ id: 0, name: 'R0', totalInstances: 10 }]);
+      setBankerState({
+        processCount: 3,
+        resourceCount: 1,
+        allocation: [[5], [4], [3]],
+        max: [[9], [7], [6]],
+        available: [0]
+      });
+      addLog('Loaded Unsafe State example - no safe sequence!', 'error');
+    }
+  };
   
   useEffect(() => {
     const info = hasCycle(processes, resources, allocations, requests);
@@ -634,61 +682,178 @@ const DeadlockPage: React.FC = () => {
   
   return (
     <div className="space-y-8">
-      <h1 className="text-3xl font-bold">Deadlock Visualization</h1>
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-1 space-y-6">
-            <Card className="p-6">
-                 <h2 className="text-xl font-semibold mb-4">Controls</h2>
+      <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-red-500 via-orange-500 to-red-600 bg-clip-text text-transparent">Deadlock Visualization</h1>
+      
+      {/* Educational Overview */}
+      <Card className="p-4 sm:p-6 bg-gradient-to-br from-red-500/5 via-orange-500/5 to-amber-500/5 border-red-200 dark:border-red-800">
+        <h2 className="text-xl font-semibold mb-3 flex items-center gap-2">
+          <AlertTriangle className="text-red-500" size={24} />
+          What is Deadlock?
+        </h2>
+        <p className="text-sm sm:text-base leading-relaxed mb-4">
+          A <strong>deadlock</strong> is a situation where a set of processes are blocked because each process is holding a resource and waiting for another resource acquired by some other process. It's a circular waiting condition that prevents all processes from making progress.
+        </p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+          <div className="p-3 rounded-lg bg-white/50 dark:bg-gray-800/50 border border-border-light dark:border-border-dark">
+            <h3 className="font-semibold text-red-600 dark:text-red-400 mb-1">Mutual Exclusion</h3>
+            <p className="text-xs text-text-muted-light dark:text-text-muted-dark">Resources cannot be shared</p>
+          </div>
+          <div className="p-3 rounded-lg bg-white/50 dark:bg-gray-800/50 border border-border-light dark:border-border-dark">
+            <h3 className="font-semibold text-orange-600 dark:text-orange-400 mb-1">Hold and Wait</h3>
+            <p className="text-xs text-text-muted-light dark:text-text-muted-dark">Process holds while waiting</p>
+          </div>
+          <div className="p-3 rounded-lg bg-white/50 dark:bg-gray-800/50 border border-border-light dark:border-border-dark">
+            <h3 className="font-semibold text-amber-600 dark:text-amber-400 mb-1">No Preemption</h3>
+            <p className="text-xs text-text-muted-light dark:text-text-muted-dark">Resources can't be forcibly taken</p>
+          </div>
+          <div className="p-3 rounded-lg bg-white/50 dark:bg-gray-800/50 border border-border-light dark:border-border-dark">
+            <h3 className="font-semibold text-red-600 dark:text-red-400 mb-1">Circular Wait</h3>
+            <p className="text-xs text-text-muted-light dark:text-text-muted-dark">Cycle in resource graph</p>
+          </div>
+        </div>
+      </Card>
+
+      {/* Quick Start Scenarios */}
+      <Card className="p-4 sm:p-6">
+        <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+          <Zap className="text-accent" size={20} />
+          Quick Start Scenarios
+        </h2>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <button
+            onClick={() => loadScenario('circular')}
+            className="p-4 rounded-lg bg-gradient-to-br from-red-500/10 to-orange-500/10 hover:from-red-500/20 hover:to-orange-500/20 border border-red-200 dark:border-red-800 transition-all duration-300 text-left group"
+          >
+            <div className="flex items-center gap-2 mb-2">
+              <XCircle className="text-red-500 group-hover:scale-110 transition-transform" size={20} />
+              <h3 className="font-semibold">Circular Wait</h3>
+            </div>
+            <p className="text-xs text-text-muted-light dark:text-text-muted-dark">Classic deadlock scenario with 2 processes</p>
+          </button>
+          <button
+            onClick={() => loadScenario('safe')}
+            className="p-4 rounded-lg bg-gradient-to-br from-green-500/10 to-emerald-500/10 hover:from-green-500/20 hover:to-emerald-500/20 border border-green-200 dark:border-green-800 transition-all duration-300 text-left group"
+          >
+            <div className="flex items-center gap-2 mb-2">
+              <CheckCircle className="text-green-500 group-hover:scale-110 transition-transform" size={20} />
+              <h3 className="font-semibold">Safe State</h3>
+            </div>
+            <p className="text-xs text-text-muted-light dark:text-text-muted-dark">Banker's algorithm with safe sequence</p>
+          </button>
+          <button
+            onClick={() => loadScenario('unsafe')}
+            className="p-4 rounded-lg bg-gradient-to-br from-amber-500/10 to-yellow-500/10 hover:from-amber-500/20 hover:to-yellow-500/20 border border-amber-200 dark:border-amber-800 transition-all duration-300 text-left group"
+          >
+            <div className="flex items-center gap-2 mb-2">
+              <AlertTriangle className="text-amber-500 group-hover:scale-110 transition-transform" size={20} />
+              <h3 className="font-semibold">Unsafe State</h3>
+            </div>
+            <p className="text-xs text-text-muted-light dark:text-text-muted-dark">No safe sequence available</p>
+          </button>
+        </div>
+      </Card>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
+        <div className="lg:col-span-1 space-y-4 lg:space-y-6">
+            <Card className="p-4 sm:p-6">
+                 <h2 className="text-lg sm:text-xl font-semibold mb-4 flex items-center gap-2">
+                   <Info className="text-accent" size={20} />
+                   Controls
+                 </h2>
                  <div className="grid grid-cols-2 gap-2">
-                     <button onClick={resetSimulation} className="btn-secondary"><RotateCcw size={16} /> Reset</button>
-                     <button onClick={handleAddProcess} className="btn-secondary"><Plus size={16} /> Add Process</button>
-                     <button onClick={() => setModal('addResource')} className="btn-secondary"><Plus size={16} /> Add Resource</button>
-                     <button onClick={() => setModal('request')} className="btn-secondary" disabled={processes.length === 0 || resources.length === 0}><Link size={16} /> Request</button>
-                     <button onClick={() => setModal('release')} className="btn-secondary" disabled={allocations.length === 0}><Unlink size={16} /> Release</button>
-                     <button onClick={() => setModal('banker')} className="btn-primary col-span-2"><ShieldCheck size={16} /> Banker's Algo</button>
+                     <button onClick={resetSimulation} className="btn-secondary text-xs sm:text-sm">
+                       <RotateCcw size={16} className="hidden sm:block" />
+                       <span>Reset</span>
+                     </button>
+                     <button onClick={handleAddProcess} className="btn-secondary text-xs sm:text-sm">
+                       <Plus size={16} className="hidden sm:block" />
+                       <span>Process</span>
+                     </button>
+                     <button onClick={() => setModal('addResource')} className="btn-secondary text-xs sm:text-sm">
+                       <Plus size={16} className="hidden sm:block" />
+                       <span>Resource</span>
+                     </button>
+                     <button onClick={() => setModal('request')} className="btn-secondary text-xs sm:text-sm" disabled={processes.length === 0 || resources.length === 0}>
+                       <Link size={16} className="hidden sm:block" />
+                       <span>Request</span>
+                     </button>
+                     <button onClick={() => setModal('release')} className="btn-secondary text-xs sm:text-sm" disabled={allocations.length === 0}>
+                       <Unlink size={16} className="hidden sm:block" />
+                       <span>Release</span>
+                     </button>
+                     <button onClick={() => setModal('banker')} className="btn-primary col-span-2 text-xs sm:text-sm">
+                       <ShieldCheck size={16} />
+                       <span>Banker's Algorithm</span>
+                     </button>
                  </div>
                  {deadlockedInfo.cycles.length > 0 && (
-                     <div className="mt-4 p-4 rounded-lg flex items-center gap-3 bg-red-500/10 text-red-500">
-                         <AlertTriangle size={24} />
-                         <div>
-                             <h3 className="font-bold">Deadlock Detected!</h3>
-                             <button onClick={() => setModal('resolve')} className="text-sm font-semibold underline hover:text-red-700">Resolve Deadlock</button>
+                     <div className="mt-4 p-3 sm:p-4 rounded-lg flex items-start sm:items-center gap-3 bg-gradient-to-br from-red-500/20 to-orange-500/20 border-2 border-red-500 animate-pulse">
+                         <AlertTriangle size={24} className="text-red-600 dark:text-red-400 flex-shrink-0" />
+                         <div className="flex-grow">
+                             <h3 className="font-bold text-sm sm:text-base text-red-600 dark:text-red-400">Deadlock Detected!</h3>
+                             <p className="text-xs text-red-700 dark:text-red-300 mb-2">Circular wait found in resource graph</p>
+                             <button onClick={() => setModal('resolve')} className="text-xs sm:text-sm font-semibold px-3 py-1 rounded-md bg-red-600 text-white hover:bg-red-700 transition-colors">
+                               Resolve Now
+                             </button>
                          </div>
                      </div>
                  )}
             </Card>
-             <Card className="p-6">
-                 <h2 className="text-xl font-semibold mb-4">Event Log</h2>
-                 <div className="h-64 overflow-y-auto space-y-3 text-sm">
-                     {log.map(entry => {
+             <Card className="p-4 sm:p-6">
+                 <h2 className="text-lg sm:text-xl font-semibold mb-4 flex items-center gap-2">
+                   <Zap className="text-accent" size={20} />
+                   Event Log
+                 </h2>
+                 <div className="h-48 sm:h-64 overflow-y-auto space-y-2 sm:space-y-3 text-xs sm:text-sm">
+                     {log.length === 0 ? (
+                       <div className="h-full flex items-center justify-center text-text-muted-light dark:text-text-muted-dark">
+                         <p className="text-center">No events yet.<br />Start by adding processes and resources!</p>
+                       </div>
+                     ) : (
+                       log.map(entry => {
                          const Icon = { info: Info, success: CheckCircle, error: XCircle, warning: AlertTriangle, action: Zap }[entry.type];
-                         const color = { info: 'text-blue-500', success: 'text-green-500', error: 'text-red-500', warning: 'text-yellow-500', action: 'text-indigo-500' }[entry.type];
+                         const color = { info: 'text-blue-500', success: 'text-green-500', error: 'text-red-500', warning: 'text-amber-500', action: 'text-indigo-500' }[entry.type];
+                         const bgColor = { info: 'bg-blue-500/5', success: 'bg-green-500/5', error: 'bg-red-500/5', warning: 'bg-amber-500/5', action: 'bg-indigo-500/5' }[entry.type];
                          return (
-                            <div key={entry.id} className="flex items-start gap-2">
+                            <div key={entry.id} className={`flex items-start gap-2 p-2 rounded-lg ${bgColor} border border-transparent hover:border-current transition-all duration-200`}>
                                 <Icon size={16} className={`mt-0.5 flex-shrink-0 ${color}`} />
-                                <div className="flex-grow">
-                                    <p className="leading-tight">{entry.message}</p>
-                                    <p className="text-xs text-text-muted-light dark:text-text-muted-dark">{entry.timestamp}</p>
+                                <div className="flex-grow min-w-0">
+                                    <p className="leading-tight break-words">{entry.message}</p>
+                                    <p className="text-xs text-text-muted-light dark:text-text-muted-dark mt-0.5">{entry.timestamp}</p>
                                 </div>
                             </div>
                         );
-                     })}
+                       })
+                     )}
                  </div>
             </Card>
         </div>
 
         <div className="lg:col-span-2">
-          <Card className="p-4 h-[550px]">
-            <h2 className="text-xl font-semibold mb-2">Resource Allocation Graph</h2>
-            <div className="h-full w-full">
-              <ResourceAllocationGraph 
-                processes={processes}
-                resources={resources}
-                allocations={allocations}
-                requests={requests}
-                deadlockedNodes={deadlockedInfo.deadlockedNodes}
-              />
-            </div>
+          <Card className="p-4 sm:p-6 h-[400px] sm:h-[500px] lg:h-[550px]">
+            <h2 className="text-lg sm:text-xl font-semibold mb-3 flex items-center gap-2">
+              <div className="w-3 h-3 rounded-full bg-gradient-to-r from-red-500 to-orange-500 animate-pulse"></div>
+              Resource Allocation Graph
+            </h2>
+            {processes.length === 0 && resources.length === 0 ? (
+              <div className="h-[calc(100%-3rem)] flex flex-col items-center justify-center text-center p-4 sm:p-8 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800/30 dark:to-gray-900/30 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-700">
+                <AlertTriangle size={48} className="text-gray-400 dark:text-gray-600 mb-4" />
+                <h3 className="text-base sm:text-lg font-semibold text-gray-600 dark:text-gray-400 mb-2">Empty Graph</h3>
+                <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-500 max-w-md">
+                  Start by adding processes and resources using the controls on the left, or load a quick start scenario above!
+                </p>
+              </div>
+            ) : (
+              <div className="h-[calc(100%-3rem)] w-full overflow-auto bg-gradient-to-br from-gray-50 to-white dark:from-gray-800/20 dark:to-gray-900/20 rounded-lg border border-border-light dark:border-border-dark p-2">
+                <ResourceAllocationGraph 
+                  processes={processes}
+                  resources={resources}
+                  allocations={allocations}
+                  requests={requests}
+                  deadlockedNodes={deadlockedInfo.deadlockedNodes}
+                />
+              </div>
+            )}
           </Card>
         </div>
       </div>
@@ -713,9 +878,102 @@ const DeadlockPage: React.FC = () => {
             />
         )}
 
+      {/* Educational Content */}
+      <Card className="p-4 sm:p-6">
+        <h2 className="text-xl sm:text-2xl font-semibold mb-4 flex items-center gap-2">
+          <ShieldCheck className="text-green-500" size={24} />
+          Banker's Algorithm
+        </h2>
+        <p className="text-sm sm:text-base leading-relaxed mb-4">
+          The <strong>Banker's Algorithm</strong> is a deadlock avoidance algorithm that tests for safety by simulating the allocation of predetermined maximum possible amounts of all resources, and then makes an "s-state" check to test for possible deadlock conditions.
+        </p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="p-4 rounded-lg bg-green-500/5 border border-green-200 dark:border-green-800">
+            <h3 className="font-semibold text-green-600 dark:text-green-400 mb-2">How It Works</h3>
+            <ol className="text-sm space-y-2 list-decimal list-inside text-text-muted-light dark:text-text-muted-dark">
+              <li>Calculate the <strong>Need</strong> matrix (Max - Allocation)</li>
+              <li>Initialize <strong>Work</strong> vector with Available resources</li>
+              <li>Find a process whose Need ≤ Work</li>
+              <li>Simulate allocation and release (Work += Allocation)</li>
+              <li>Repeat until all processes finish (safe) or stuck (unsafe)</li>
+            </ol>
+          </div>
+          <div className="p-4 rounded-lg bg-blue-500/5 border border-blue-200 dark:border-blue-800">
+            <h3 className="font-semibold text-blue-600 dark:text-blue-400 mb-2">Key Concepts</h3>
+            <ul className="text-sm space-y-2 text-text-muted-light dark:text-text-muted-dark">
+              <li><strong>Safe State:</strong> A sequence exists where all processes can complete</li>
+              <li><strong>Unsafe State:</strong> No safe sequence exists; deadlock possible</li>
+              <li><strong>Safe Sequence:</strong> Order of process execution that avoids deadlock</li>
+              <li><strong>Need Matrix:</strong> Additional resources needed to complete</li>
+            </ul>
+          </div>
+        </div>
+      </Card>
+
+      <Card className="p-4 sm:p-6">
+        <h2 className="text-xl sm:text-2xl font-semibold mb-4 flex items-center gap-2">
+          <Info className="text-blue-500" size={24} />
+          Deadlock Handling Strategies
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="p-4 rounded-lg bg-gradient-to-br from-red-500/5 to-orange-500/5 border border-red-200 dark:border-red-800">
+            <h3 className="font-semibold text-red-600 dark:text-red-400 mb-2 flex items-center gap-2">
+              <XCircle size={18} />
+              Prevention
+            </h3>
+            <p className="text-xs sm:text-sm text-text-muted-light dark:text-text-muted-dark mb-2">
+              Ensure at least one of the four necessary conditions cannot hold.
+            </p>
+            <ul className="text-xs space-y-1 list-disc list-inside text-text-muted-light dark:text-text-muted-dark">
+              <li>Resource ordering</li>
+              <li>All-or-nothing allocation</li>
+              <li>Preemption allowed</li>
+            </ul>
+          </div>
+          <div className="p-4 rounded-lg bg-gradient-to-br from-green-500/5 to-emerald-500/5 border border-green-200 dark:border-green-800">
+            <h3 className="font-semibold text-green-600 dark:text-green-400 mb-2 flex items-center gap-2">
+              <ShieldCheck size={18} />
+              Avoidance
+            </h3>
+            <p className="text-xs sm:text-sm text-text-muted-light dark:text-text-muted-dark mb-2">
+              Dynamically check resource allocation to ensure system stays in safe state.
+            </p>
+            <ul className="text-xs space-y-1 list-disc list-inside text-text-muted-light dark:text-text-muted-dark">
+              <li>Banker's Algorithm</li>
+              <li>Resource allocation graph</li>
+              <li>Safe sequence check</li>
+            </ul>
+          </div>
+          <div className="p-4 rounded-lg bg-gradient-to-br from-amber-500/5 to-yellow-500/5 border border-amber-200 dark:border-amber-800">
+            <h3 className="font-semibold text-amber-600 dark:text-amber-400 mb-2 flex items-center gap-2">
+              <AlertTriangle size={18} />
+              Detection & Recovery
+            </h3>
+            <p className="text-xs sm:text-sm text-text-muted-light dark:text-text-muted-dark mb-2">
+              Allow deadlocks, detect them using cycle detection, then recover.
+            </p>
+            <ul className="text-xs space-y-1 list-disc list-inside text-text-muted-light dark:text-text-muted-dark">
+              <li>Cycle detection in RAG</li>
+              <li>Process termination</li>
+              <li>Resource preemption</li>
+            </ul>
+          </div>
+        </div>
+      </Card>
+
+      <Card className="p-4 sm:p-6 bg-gradient-to-br from-blue-500/5 via-indigo-500/5 to-purple-500/5 border-blue-200 dark:border-blue-800">
+        <h2 className="text-xl sm:text-2xl font-semibold mb-4 flex items-center gap-2">
+          <CheckCircle className="text-blue-500" size={24} />
+          Summary
+        </h2>
+        <p className="text-sm sm:text-base leading-relaxed">
+          Deadlock is a critical issue in concurrent systems where processes wait indefinitely for resources held by each other. Understanding the four necessary conditions (mutual exclusion, hold and wait, no preemption, circular wait) is essential. The <strong>Banker's Algorithm</strong> provides a proactive avoidance strategy by ensuring the system remains in a safe state, while <strong>Resource Allocation Graph (RAG)</strong> visualization helps detect circular wait conditions. In practice, most operating systems use a combination of prevention, avoidance, and detection strategies to manage deadlocks effectively.
+        </p>
+      </Card>
+
       <style>{`
-        .btn-primary { @apply flex items-center justify-center gap-2 px-4 py-2 bg-accent text-white font-semibold rounded-lg shadow-md hover:bg-accent-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed; }
-        .btn-secondary { @apply flex items-center justify-center gap-2 px-4 py-2 bg-gray-200 dark:bg-gray-700 font-semibold rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed; }
+        .btn-primary { @apply flex items-center justify-center gap-2 px-3 sm:px-4 py-2 bg-accent text-white font-semibold rounded-lg shadow-md hover:bg-accent-hover transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed; }
+        .btn-secondary { @apply flex items-center justify-center gap-2 px-3 sm:px-4 py-2 bg-gray-200 dark:bg-gray-700 font-semibold rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed; }
       `}</style>
     </div>
   );
