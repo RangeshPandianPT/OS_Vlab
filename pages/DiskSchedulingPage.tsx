@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import Card from '../components/Card';
-import { Play, RotateCcw, ChevronRight, ChevronLeft } from 'lucide-react';
+import { Play, RotateCcw, ChevronRight, ChevronLeft, HardDrive, Gauge, Zap, TrendingUp, ArrowRight, Activity, CheckCircle } from 'lucide-react';
 
 type DiskSchedulingAlgorithm = 'FCFS' | 'SSTF' | 'SCAN' | 'C-SCAN';
 
@@ -235,20 +235,60 @@ const DiskSchedulingPage: React.FC = () => {
   const requests = parseRequestQueue(requestQueue);
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-2xl md:text-3xl font-bold">Disk Scheduling Simulation</h1>
+    <div className="space-y-6 md:space-y-8">
+      <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-orange-500 via-amber-500 to-yellow-500 bg-clip-text text-transparent">Disk Scheduling Simulation</h1>
+
+      {/* Educational Overview */}
+      <Card className="p-4 sm:p-6 bg-gradient-to-br from-orange-500/5 via-amber-500/5 to-yellow-500/5 border-orange-200 dark:border-orange-800">
+        <h2 className="text-xl font-semibold mb-3 flex items-center gap-2">
+          <HardDrive className="text-orange-500" size={24} />
+          What is Disk Scheduling?
+        </h2>
+        <p className="text-sm sm:text-base leading-relaxed mb-4">
+          Disk scheduling algorithms determine the order in which disk I/O requests are serviced. The goal is to minimize
+          the total <strong>seek time</strong> (the time it takes for the disk head to move to the requested track). Efficient disk scheduling
+          improves overall system performance by reducing access latency and maximizing throughput.
+        </p>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
+          <div className="p-3 rounded-lg bg-white/50 dark:bg-gray-800/50 border border-border-light dark:border-border-dark">
+            <h3 className="font-semibold text-orange-600 dark:text-orange-400 mb-1">FCFS</h3>
+            <p className="text-xs text-text-muted-light dark:text-text-muted-dark">First-Come First-Served</p>
+          </div>
+          <div className="p-3 rounded-lg bg-white/50 dark:bg-gray-800/50 border border-border-light dark:border-border-dark">
+            <h3 className="font-semibold text-amber-600 dark:text-amber-400 mb-1">SSTF</h3>
+            <p className="text-xs text-text-muted-light dark:text-text-muted-dark">Shortest Seek Time First</p>
+          </div>
+          <div className="p-3 rounded-lg bg-white/50 dark:bg-gray-800/50 border border-border-light dark:border-border-dark">
+            <h3 className="font-semibold text-yellow-600 dark:text-yellow-400 mb-1">SCAN</h3>
+            <p className="text-xs text-text-muted-light dark:text-text-muted-dark">Elevator Algorithm</p>
+          </div>
+          <div className="p-3 rounded-lg bg-white/50 dark:bg-gray-800/50 border border-border-light dark:border-border-dark">
+            <h3 className="font-semibold text-orange-600 dark:text-orange-400 mb-1">C-SCAN</h3>
+            <p className="text-xs text-text-muted-light dark:text-text-muted-dark">Circular SCAN</p>
+          </div>
+        </div>
+      </Card>
 
       {/* Algorithm Selection */}
-      <Card className="p-4 md:p-6">
-        <h2 className="text-lg md:text-xl font-semibold mb-3">Select Algorithm</h2>
+      <Card className="p-4 sm:p-6">
+        <h2 className="text-lg sm:text-xl font-semibold mb-4 flex items-center gap-2">
+          <Zap className="text-accent" size={20} />
+          Select Algorithm
+        </h2>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {(['FCFS', 'SSTF', 'SCAN', 'C-SCAN'] as DiskSchedulingAlgorithm[]).map(alg => (
             <button
               key={alg}
               onClick={() => setAlgorithm(alg)}
-              className={`px-4 py-3 rounded-lg font-medium transition-all text-sm md:text-base ${
+              className={`px-4 py-3 rounded-lg font-medium transition-all duration-300 text-sm md:text-base ${
                 algorithm === alg
-                  ? 'bg-accent text-white shadow-md'
+                  ? alg === 'FCFS'
+                    ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-lg scale-105'
+                    : alg === 'SSTF'
+                    ? 'bg-gradient-to-r from-amber-500 to-yellow-500 text-white shadow-lg scale-105'
+                    : alg === 'SCAN'
+                    ? 'bg-gradient-to-r from-yellow-500 to-orange-500 text-white shadow-lg scale-105'
+                    : 'bg-gradient-to-r from-orange-600 to-red-500 text-white shadow-lg scale-105'
                   : 'bg-gray-100 dark:bg-gray-800 text-text-muted-light dark:text-text-muted-dark hover:bg-gray-200 dark:hover:bg-gray-700'
               }`}
             >
@@ -259,26 +299,31 @@ const DiskSchedulingPage: React.FC = () => {
       </Card>
 
       {/* Input Configuration */}
-      <Card className="p-4 md:p-6">
-        <h2 className="text-lg md:text-xl font-semibold mb-4">Configuration</h2>
+      <Card className="p-4 sm:p-6">
+        <h2 className="text-lg sm:text-xl font-semibold mb-4 flex items-center gap-2">
+          <Gauge className="text-accent" size={20} />
+          Configuration
+        </h2>
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium mb-2">
+            <label className="block text-sm font-medium mb-2 flex items-center gap-2">
+              <Activity size={16} className="text-text-muted-light dark:text-text-muted-dark" />
               Request Queue (comma-separated track numbers)
             </label>
             <input
               type="text"
               value={requestQueue}
               onChange={(e) => setRequestQueue(e.target.value)}
-              className="w-full px-4 py-2 rounded-lg bg-gray-50 dark:bg-gray-800 border border-border-light dark:border-border-dark focus:outline-none focus:ring-2 focus:ring-accent"
+              className="w-full px-4 py-2 rounded-lg bg-gray-50 dark:bg-gray-800 border border-border-light dark:border-border-dark focus:outline-none focus:ring-2 focus:ring-accent transition-all"
               placeholder="e.g., 98,183,37,122,14,124,65,67"
             />
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium mb-2">
-                Initial Head Position: {initialHead}
+              <label className="block text-sm font-medium mb-2 flex items-center gap-2">
+                <ArrowRight size={16} className="text-text-muted-light dark:text-text-muted-dark" />
+                Initial Head Position: <span className="text-accent font-bold">{initialHead}</span>
               </label>
               <input
                 type="range"
@@ -286,13 +331,18 @@ const DiskSchedulingPage: React.FC = () => {
                 max={diskSize - 1}
                 value={initialHead}
                 onChange={(e) => setInitialHead(parseInt(e.target.value))}
-                className="w-full"
+                className="w-full accent-accent"
               />
+              <div className="flex justify-between text-xs text-text-muted-light dark:text-text-muted-dark mt-1">
+                <span>0</span>
+                <span>{diskSize - 1}</span>
+              </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-2">
-                Disk Size (tracks): {diskSize}
+              <label className="block text-sm font-medium mb-2 flex items-center gap-2">
+                <HardDrive size={16} className="text-text-muted-light dark:text-text-muted-dark" />
+                Disk Size (tracks): <span className="text-accent font-bold">{diskSize}</span>
               </label>
               <input
                 type="range"
@@ -301,8 +351,12 @@ const DiskSchedulingPage: React.FC = () => {
                 step="10"
                 value={diskSize}
                 onChange={(e) => setDiskSize(parseInt(e.target.value))}
-                className="w-full"
+                className="w-full accent-accent"
               />
+              <div className="flex justify-between text-xs text-text-muted-light dark:text-text-muted-dark mt-1">
+                <span>100</span>
+                <span>300</span>
+              </div>
             </div>
           </div>
 
@@ -312,20 +366,20 @@ const DiskSchedulingPage: React.FC = () => {
               <div className="flex gap-3">
                 <button
                   onClick={() => setDirection('left')}
-                  className={`flex-1 px-4 py-2 rounded-lg font-medium transition-all ${
+                  className={`flex-1 px-4 py-2 rounded-lg font-medium transition-all duration-300 ${
                     direction === 'left'
-                      ? 'bg-accent text-white'
-                      : 'bg-gray-100 dark:bg-gray-800 text-text-muted-light dark:text-text-muted-dark'
+                      ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-md'
+                      : 'bg-gray-100 dark:bg-gray-800 text-text-muted-light dark:text-text-muted-dark hover:bg-gray-200 dark:hover:bg-gray-700'
                   }`}
                 >
                   ← Left
                 </button>
                 <button
                   onClick={() => setDirection('right')}
-                  className={`flex-1 px-4 py-2 rounded-lg font-medium transition-all ${
+                  className={`flex-1 px-4 py-2 rounded-lg font-medium transition-all duration-300 ${
                     direction === 'right'
-                      ? 'bg-accent text-white'
-                      : 'bg-gray-100 dark:bg-gray-800 text-text-muted-light dark:text-text-muted-dark'
+                      ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-md'
+                      : 'bg-gray-100 dark:bg-gray-800 text-text-muted-light dark:text-text-muted-dark hover:bg-gray-200 dark:hover:bg-gray-700'
                   }`}
                 >
                   Right →
@@ -337,7 +391,7 @@ const DiskSchedulingPage: React.FC = () => {
           <div className="flex flex-wrap gap-3">
             <button
               onClick={handleRunSimulation}
-              className="flex items-center gap-2 px-6 py-2 bg-accent text-white rounded-lg hover:bg-accent-hover transition-colors font-medium"
+              className="flex items-center gap-2 px-6 py-2 bg-gradient-to-r from-orange-500 to-amber-600 text-white rounded-lg hover:from-orange-600 hover:to-amber-700 transition-all duration-300 font-medium shadow-md hover:shadow-lg"
             >
               <Play size={18} />
               Run Simulation
@@ -346,7 +400,7 @@ const DiskSchedulingPage: React.FC = () => {
             {isRunning && (
               <button
                 onClick={handleReset}
-                className="flex items-center gap-2 px-6 py-2 bg-gray-100 dark:bg-gray-800 text-text-light dark:text-text-dark rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors font-medium"
+                className="flex items-center gap-2 px-6 py-2 bg-gray-200 dark:bg-gray-700 text-text-light dark:text-text-dark rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-all duration-300 font-medium"
               >
                 <RotateCcw size={18} />
                 Reset
@@ -358,21 +412,24 @@ const DiskSchedulingPage: React.FC = () => {
 
       {/* Disk Track Visualization */}
       {isRunning && simulation && (
-        <Card className="p-4 md:p-6">
+        <Card className="p-4 sm:p-6">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
-            <h2 className="text-lg md:text-xl font-semibold">Disk Head Movement</h2>
-            <div className="flex flex-wrap items-center gap-3 text-sm">
-              <span className="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded-md font-medium">
-                Total Seek: {simulation.totalSeekTime}
+            <h2 className="text-lg sm:text-xl font-semibold flex items-center gap-2">
+              <div className="w-3 h-3 rounded-full bg-gradient-to-r from-orange-500 to-amber-500 animate-pulse"></div>
+              Disk Head Movement
+            </h2>
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-xs sm:text-sm">
+              <span className="px-3 py-1 bg-gradient-to-br from-blue-500/20 to-indigo-500/20 border border-blue-400 dark:border-blue-600 text-blue-700 dark:text-blue-400 rounded-lg font-medium">
+                Total: {simulation.totalSeekTime}
               </span>
-              <span className="px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-md font-medium">
+              <span className="px-3 py-1 bg-gradient-to-br from-green-500/20 to-emerald-500/20 border border-green-400 dark:border-green-600 text-green-700 dark:text-green-400 rounded-lg font-medium">
                 Avg: {simulation.averageSeekTime.toFixed(2)}
               </span>
             </div>
           </div>
 
           {/* Visual Disk Track */}
-          <div className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-4 mb-4 overflow-x-auto">
+          <div className="bg-gradient-to-br from-gray-50 to-white dark:from-gray-800/20 dark:to-gray-900/20 rounded-lg border border-border-light dark:border-border-dark p-4 mb-4 overflow-x-auto">
             <div className="min-w-[600px]">
               {/* Track scale */}
               <div className="relative h-32 mb-4">
@@ -399,19 +456,25 @@ const DiskSchedulingPage: React.FC = () => {
                       }
                     }
                     
+                    const isServiced = simulation.sequence.slice(0, currentStep + 1).includes(req);
+                    
                     return (
                       <div
                         key={`req-${idx}`}
-                        className="absolute"
+                        className="absolute transition-all duration-500"
                         style={{ left: `${pos}%`, top: '50%', transform: 'translate(-50%, -50%)' }}
                       >
-                        <div className={`w-3 h-3 rounded-full ${
-                          simulation.sequence.slice(0, currentStep + 1).includes(req)
-                            ? 'bg-green-500'
-                            : 'bg-red-500'
+                        <div className={`w-3 h-3 rounded-full transition-all duration-500 ${
+                          isServiced
+                            ? 'bg-gradient-to-br from-green-500 to-emerald-500 shadow-lg'
+                            : 'bg-gradient-to-br from-red-500 to-orange-500'
                         }`}></div>
                         <span 
-                          className="absolute left-1/2 -translate-x-1/2 text-xs font-medium whitespace-nowrap bg-white/90 dark:bg-gray-900/90 px-1 rounded"
+                          className={`absolute left-1/2 -translate-x-1/2 text-xs font-medium whitespace-nowrap px-1.5 py-0.5 rounded transition-all duration-300 ${
+                            isServiced
+                              ? 'bg-green-100 dark:bg-green-900/90 text-green-700 dark:text-green-300'
+                              : 'bg-white/90 dark:bg-gray-900/90'
+                          }`}
                           style={{ top: `${labelOffset}px` }}
                         >
                           {req}
@@ -425,8 +488,11 @@ const DiskSchedulingPage: React.FC = () => {
                   className="absolute transition-all duration-500 z-10"
                   style={{ left: `${(currentHeadPos / diskSize) * 100}%`, top: '50%', transform: 'translate(-50%, -50%)' }}
                 >
-                  <div className="w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-t-[12px] border-t-accent animate-pulse"></div>
-                  <span className="absolute -top-10 left-1/2 -translate-x-1/2 text-sm font-bold text-accent whitespace-nowrap bg-white/95 dark:bg-gray-900/95 px-2 py-1 rounded shadow-sm">
+                  <div className="relative">
+                    <div className="w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-t-[14px] border-t-orange-500 animate-pulse drop-shadow-lg"></div>
+                    <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-2 h-2 rounded-full bg-orange-500 animate-ping"></div>
+                  </div>
+                  <span className="absolute -top-12 left-1/2 -translate-x-1/2 text-sm font-bold bg-gradient-to-r from-orange-500 to-amber-500 bg-clip-text text-transparent whitespace-nowrap bg-white/95 dark:bg-gray-900/95 px-2 py-1 rounded shadow-lg border border-orange-300 dark:border-orange-700">
                     Head: {currentHeadPos}
                   </span>
                 </div>
@@ -443,16 +509,19 @@ const DiskSchedulingPage: React.FC = () => {
 
           {/* Seek sequence */}
           <div className="mb-4">
-            <h3 className="text-sm font-semibold mb-2">Seek Sequence:</h3>
+            <h3 className="text-sm font-semibold mb-2 flex items-center gap-2">
+              <TrendingUp size={16} className="text-accent" />
+              Seek Sequence:
+            </h3>
             <div className="flex flex-wrap gap-2">
               {simulation.sequence.map((pos, idx) => (
                 <div key={idx} className="flex items-center">
                   <div
-                    className={`px-3 py-1 rounded-md font-medium text-sm ${
+                    className={`px-3 py-1 rounded-lg font-medium text-sm transition-all duration-300 ${
                       idx === currentStep + 1
-                        ? 'bg-accent text-white ring-2 ring-accent/50'
+                        ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white ring-2 ring-orange-300 dark:ring-orange-700 scale-110'
                         : idx <= currentStep
-                        ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
+                        ? 'bg-gradient-to-br from-green-500/20 to-emerald-500/20 border border-green-400 dark:border-green-600 text-green-700 dark:text-green-400'
                         : 'bg-gray-100 dark:bg-gray-800 text-text-muted-light dark:text-text-muted-dark'
                     }`}
                   >
@@ -468,12 +537,12 @@ const DiskSchedulingPage: React.FC = () => {
 
           {/* Current step info */}
           {currentStep < simulation.steps.length && (
-            <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3 mb-4">
-              <p className="text-sm">
+            <div className="bg-gradient-to-br from-orange-500/10 to-amber-500/10 border border-orange-300 dark:border-orange-700 rounded-lg p-3 sm:p-4 mb-4">
+              <p className="text-sm sm:text-base">
                 <span className="font-semibold">Step {currentStep + 1}:</span> Move from{' '}
-                <span className="font-bold text-accent">{simulation.steps[currentStep].from}</span> to{' '}
-                <span className="font-bold text-accent">{simulation.steps[currentStep].to}</span>
-                {' '}(Seek distance: <span className="font-bold">{simulation.steps[currentStep].seekDistance}</span>)
+                <span className="font-bold bg-gradient-to-r from-orange-500 to-amber-500 bg-clip-text text-transparent">{simulation.steps[currentStep].from}</span> to{' '}
+                <span className="font-bold bg-gradient-to-r from-orange-500 to-amber-500 bg-clip-text text-transparent">{simulation.steps[currentStep].to}</span>
+                {' '}(Seek distance: <span className="font-bold text-orange-600 dark:text-orange-400">{simulation.steps[currentStep].seekDistance}</span>)
               </p>
             </div>
           )}
@@ -483,20 +552,20 @@ const DiskSchedulingPage: React.FC = () => {
             <button
               onClick={handlePrev}
               disabled={currentStep === 0}
-              className="flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-800 text-text-light dark:text-text-dark rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-800 text-text-light dark:text-text-dark rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <ChevronLeft size={18} />
               <span className="hidden sm:inline">Previous</span>
             </button>
 
-            <span className="text-sm font-medium text-text-muted-light dark:text-text-muted-dark">
+            <span className="text-sm font-medium bg-gradient-to-r from-orange-500 to-amber-500 bg-clip-text text-transparent">
               Step {currentStep + 1} / {simulation.steps.length}
             </span>
 
             <button
               onClick={handleNext}
               disabled={currentStep === simulation.steps.length - 1}
-              className="flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-800 text-text-light dark:text-text-dark rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-800 text-text-light dark:text-text-dark rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <span className="hidden sm:inline">Next</span>
               <ChevronRight size={18} />
@@ -506,73 +575,84 @@ const DiskSchedulingPage: React.FC = () => {
       )}
 
       {/* Educational Content */}
-      <Card className="p-6">
-        <h2 className="text-xl font-semibold mb-3">What is Disk Scheduling?</h2>
-        <p className="text-text-muted-light dark:text-text-muted-dark leading-relaxed">
-          Disk scheduling algorithms determine the order in which disk I/O requests are serviced. The goal is to minimize
-          the total seek time (the time it takes for the disk head to move to the requested track). Efficient disk scheduling
-          improves overall system performance by reducing access latency and maximizing throughput. Different algorithms make
-          different trade-offs between fairness, average seek time, and worst-case performance.
-        </p>
+      <Card className="p-4 sm:p-6">
+        <h2 className="text-xl sm:text-2xl font-semibold mb-4 flex items-center gap-2">
+          <HardDrive className="text-orange-500" size={24} />
+          Disk Scheduling Algorithms
+        </h2>
+        <div className="grid gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-4">
+          <div className="p-4 sm:p-5 rounded-lg bg-gradient-to-br from-orange-500/5 to-amber-500/5 border border-orange-200 dark:border-orange-800">
+            <h3 className="font-semibold mb-2 flex items-center gap-2 text-orange-600 dark:text-orange-400">
+              <ArrowRight size={18} />
+              FCFS (First-Come, First-Served)
+            </h3>
+            <p className="text-xs sm:text-sm text-text-muted-light dark:text-text-muted-dark mb-2">
+              Services requests in the order they arrive, like a simple queue. No reordering or optimization.
+            </p>
+            <p className="text-xs sm:text-sm"><strong className="text-green-600 dark:text-green-400">Pros:</strong> Fair, simple, no starvation.</p>
+            <p className="text-xs sm:text-sm"><strong className="text-red-600 dark:text-red-400">Cons:</strong> Can result in excessive head movement and high seek times.</p>
+          </div>
+
+          <div className="p-4 sm:p-5 rounded-lg bg-gradient-to-br from-amber-500/5 to-yellow-500/5 border border-amber-200 dark:border-amber-800">
+            <h3 className="font-semibold mb-2 flex items-center gap-2 text-amber-600 dark:text-amber-400">
+              <Zap size={18} />
+              SSTF (Shortest Seek Time First)
+            </h3>
+            <p className="text-xs sm:text-sm text-text-muted-light dark:text-text-muted-dark mb-2">
+              Services the request closest to the current head position. Greedy algorithm that minimizes immediate seek distance.
+            </p>
+            <p className="text-xs sm:text-sm"><strong className="text-green-600 dark:text-green-400">Pros:</strong> Better average seek time than FCFS.</p>
+            <p className="text-xs sm:text-sm"><strong className="text-red-600 dark:text-red-400">Cons:</strong> Can cause starvation for distant requests.</p>
+          </div>
+
+          <div className="p-4 sm:p-5 rounded-lg bg-gradient-to-br from-yellow-500/5 to-orange-500/5 border border-yellow-200 dark:border-yellow-800">
+            <h3 className="font-semibold mb-2 flex items-center gap-2 text-yellow-600 dark:text-yellow-400">
+              <TrendingUp size={18} />
+              SCAN (Elevator Algorithm)
+            </h3>
+            <p className="text-xs sm:text-sm text-text-muted-light dark:text-text-muted-dark mb-2">
+              Head moves in one direction servicing requests, then reverses direction when it reaches the end of the disk.
+            </p>
+            <p className="text-xs sm:text-sm"><strong className="text-green-600 dark:text-green-400">Pros:</strong> Uniform wait time, no starvation.</p>
+            <p className="text-xs sm:text-sm"><strong className="text-red-600 dark:text-red-400">Cons:</strong> Requests at edges wait longer on average.</p>
+          </div>
+
+          <div className="p-4 sm:p-5 rounded-lg bg-gradient-to-br from-orange-500/5 to-red-500/5 border border-orange-200 dark:border-orange-800">
+            <h3 className="font-semibold mb-2 flex items-center gap-2 text-orange-600 dark:text-orange-400">
+              <Activity size={18} />
+              C-SCAN (Circular SCAN)
+            </h3>
+            <p className="text-xs sm:text-sm text-text-muted-light dark:text-text-muted-dark mb-2">
+              Similar to SCAN but only services requests in one direction, then jumps back to the start without servicing.
+            </p>
+            <p className="text-xs sm:text-sm"><strong className="text-green-600 dark:text-green-400">Pros:</strong> More uniform wait times than SCAN.</p>
+            <p className="text-xs sm:text-sm"><strong className="text-red-600 dark:text-red-400">Cons:</strong> Slightly higher overhead due to return jump.</p>
+          </div>
+        </div>
       </Card>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-        <Card className="p-5">
-          <h3 className="font-semibold mb-2">FCFS (First-Come, First-Served)</h3>
-          <p className="text-sm text-text-muted-light dark:text-text-muted-dark mb-2">
-            Services requests in the order they arrive, like a simple queue. No reordering or optimization.
-          </p>
-          <p className="text-sm"><strong>Pros:</strong> Fair, simple, no starvation.</p>
-          <p className="text-sm"><strong>Cons:</strong> Can result in excessive head movement and high seek times.</p>
-        </Card>
-
-        <Card className="p-5">
-          <h3 className="font-semibold mb-2">SSTF (Shortest Seek Time First)</h3>
-          <p className="text-sm text-text-muted-light dark:text-text-muted-dark mb-2">
-            Services the request closest to the current head position. Greedy algorithm that minimizes immediate seek distance.
-          </p>
-          <p className="text-sm"><strong>Pros:</strong> Better average seek time than FCFS.</p>
-          <p className="text-sm"><strong>Cons:</strong> Can cause starvation for distant requests.</p>
-        </Card>
-
-        <Card className="p-5">
-          <h3 className="font-semibold mb-2">SCAN (Elevator Algorithm)</h3>
-          <p className="text-sm text-text-muted-light dark:text-text-muted-dark mb-2">
-            Head moves in one direction servicing requests, then reverses direction when it reaches the end of the disk.
-          </p>
-          <p className="text-sm"><strong>Pros:</strong> Uniform wait time, no starvation.</p>
-          <p className="text-sm"><strong>Cons:</strong> Requests at edges wait longer on average.</p>
-        </Card>
-
-        <Card className="p-5">
-          <h3 className="font-semibold mb-2">C-SCAN (Circular SCAN)</h3>
-          <p className="text-sm text-text-muted-light dark:text-text-muted-dark mb-2">
-            Similar to SCAN but only services requests in one direction, then jumps back to the start without servicing.
-          </p>
-          <p className="text-sm"><strong>Pros:</strong> More uniform wait times than SCAN.</p>
-          <p className="text-sm"><strong>Cons:</strong> Slightly higher overhead due to return jump.</p>
-        </Card>
-      </div>
-
-      <Card className="p-6">
-        <h2 className="text-xl font-semibold mb-3">Example Walkthrough (SSTF)</h2>
-        <p className="text-text-muted-light dark:text-text-muted-dark leading-relaxed mb-3">
-          Given request queue: <code className="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">98, 183, 37, 122, 14, 124, 65, 67</code> and
-          initial head position at <code className="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">53</code>, SSTF will always choose
+      <Card className="p-4 sm:p-6 bg-gradient-to-br from-amber-500/5 to-yellow-500/5 border-amber-200 dark:border-amber-800">
+        <h2 className="text-xl sm:text-2xl font-semibold mb-4 flex items-center gap-2">
+          <Gauge className="text-amber-500" size={24} />
+          Example Walkthrough (SSTF)
+        </h2>
+        <p className="text-sm sm:text-base text-text-muted-light dark:text-text-muted-dark leading-relaxed mb-3">
+          Given request queue: <code className="bg-gradient-to-r from-amber-500/10 to-yellow-500/10 border border-amber-300 dark:border-amber-700 px-2 py-1 rounded font-mono">98, 183, 37, 122, 14, 124, 65, 67</code> and
+          initial head position at <code className="bg-gradient-to-r from-amber-500/10 to-yellow-500/10 border border-amber-300 dark:border-amber-700 px-2 py-1 rounded font-mono">53</code>, SSTF will always choose
           the closest unserviced request:
         </p>
-        <ol className="list-decimal pl-5 text-text-muted-light dark:text-text-muted-dark space-y-1">
-          <li>Head at 53 → Closest: 65 (distance: 12)</li>
-          <li>Head at 65 → Closest: 67 (distance: 2)</li>
-          <li>Head at 67 → Closest: 37 (distance: 30)</li>
-          <li>Head at 37 → Closest: 14 (distance: 23)</li>
-          <li>Head at 14 → Closest: 98 (distance: 84)</li>
-          <li>Head at 98 → Closest: 122 (distance: 24)</li>
-          <li>Head at 122 → Closest: 124 (distance: 2)</li>
-          <li>Head at 124 → Closest: 183 (distance: 59)</li>
+        <ol className="list-decimal pl-5 text-sm sm:text-base text-text-muted-light dark:text-text-muted-dark space-y-1">
+          <li>Head at <strong className="text-amber-600 dark:text-amber-400">53</strong> → Closest: <strong className="text-green-600 dark:text-green-400">65</strong> (distance: 12)</li>
+          <li>Head at <strong className="text-amber-600 dark:text-amber-400">65</strong> → Closest: <strong className="text-green-600 dark:text-green-400">67</strong> (distance: 2)</li>
+          <li>Head at <strong className="text-amber-600 dark:text-amber-400">67</strong> → Closest: <strong className="text-green-600 dark:text-green-400">37</strong> (distance: 30)</li>
+          <li>Head at <strong className="text-amber-600 dark:text-amber-400">37</strong> → Closest: <strong className="text-green-600 dark:text-green-400">14</strong> (distance: 23)</li>
+          <li>Head at <strong className="text-amber-600 dark:text-amber-400">14</strong> → Closest: <strong className="text-green-600 dark:text-green-400">98</strong> (distance: 84)</li>
+          <li>Head at <strong className="text-amber-600 dark:text-amber-400">98</strong> → Closest: <strong className="text-green-600 dark:text-green-400">122</strong> (distance: 24)</li>
+          <li>Head at <strong className="text-amber-600 dark:text-amber-400">122</strong> → Closest: <strong className="text-green-600 dark:text-green-400">124</strong> (distance: 2)</li>
+          <li>Head at <strong className="text-amber-600 dark:text-amber-400">124</strong> → Closest: <strong className="text-green-600 dark:text-green-400">183</strong> (distance: 59)</li>
         </ol>
         <p className="mt-3 text-sm text-text-muted-light dark:text-text-muted-dark">
-          Total seek time: 236. Compare this to FCFS or SCAN using the simulation above!
+          Total seek time: <strong className="text-orange-600 dark:text-orange-400">236</strong>. Compare this to FCFS or SCAN using the simulation above!
         </p>
       </Card>
 
@@ -666,14 +746,17 @@ const DiskSchedulingPage: React.FC = () => {
         </ul>
       </Card>
 
-      <Card className="p-6">
-        <h2 className="text-xl font-semibold mb-3">Summary</h2>
-        <p className="text-text-muted-light dark:text-text-muted-dark leading-relaxed">
+      <Card className="p-4 sm:p-6 bg-gradient-to-br from-orange-500/5 via-amber-500/5 to-yellow-500/5 border-orange-200 dark:border-orange-800">
+        <h2 className="text-xl sm:text-2xl font-semibold mb-4 flex items-center gap-2">
+          <CheckCircle className="text-orange-500" size={24} />
+          Summary
+        </h2>
+        <p className="text-sm sm:text-base text-text-muted-light dark:text-text-muted-dark leading-relaxed">
           Disk scheduling is a classic OS optimization problem that balances throughput, fairness, and response time predictability.
-          FCFS is simple and fair but inefficient. SSTF minimizes average seek time but risks starvation. SCAN and C-SCAN provide
+          <strong> FCFS</strong> is simple and fair but inefficient. <strong>SSTF</strong> minimizes average seek time but risks starvation. <strong>SCAN</strong> and <strong>C-SCAN</strong> provide
           a middle ground with bounded wait times and no starvation. Use the simulation above to visualize how each algorithm behaves
           with different request patterns and initial conditions. Understanding these principles helps in choosing appropriate I/O
-          schedulers and storage configurations for modern systems, even as the underlying hardware evolves.
+          schedulers and storage configurations for modern systems, even as the underlying hardware evolves toward SSDs and NVMe drives.
         </p>
       </Card>
     </div>
