@@ -458,21 +458,83 @@ const ThreadsAndSyncPage: React.FC = () => {
               <Zap className="text-cyan-500" size={20} />
               Controls
             </h2>
-            <div className="grid grid-cols-2 gap-2 mb-4">
-                <button onClick={()=> dispatch({type: state.isRunning ? 'PAUSE':'START'})} className="btn-primary">{state.isRunning ? <><Pause size={16}/> Pause</> : <><Play size={16}/> Start</>}</button>
-                <button onClick={()=> dispatch({type: 'STEP'})} disabled={state.isRunning} className="btn-secondary disabled:opacity-50"><SkipForward size={16}/> Step</button>
-                <button onClick={()=> dispatch({type: 'RESET'})} className="btn-secondary col-span-2"><RotateCcw size={16}/> Reset</button>
-                 {state.mode === 'DINING_PHILOSOPHERS' && state.metrics.deadlocks > 0 && (
-                    <button onClick={() => dispatch({ type: 'RESOLVE_DEADLOCK' })} className="btn-danger col-span-2">
-                        <AlertTriangle size={16}/> Resolve Deadlock
-                    </button>
-                )}
+            
+            {/* Playback Controls */}
+            <div className="mb-4 p-3 rounded-lg bg-gradient-to-br from-teal-500/5 to-cyan-500/5 border border-teal-300 dark:border-teal-700">
+              <h3 className="text-xs font-semibold text-teal-600 dark:text-teal-400 mb-2 flex items-center gap-1">
+                <Play size={14} />
+                Playback
+              </h3>
+              <div className="grid grid-cols-2 gap-2">
+                <button 
+                  onClick={() => dispatch({type: state.isRunning ? 'PAUSE' : 'START'})} 
+                  className={`flex items-center justify-center gap-2 px-3 py-2 rounded-lg font-semibold transition-all duration-300 shadow-md hover:shadow-lg hover:scale-105 text-sm ${
+                    state.isRunning 
+                      ? 'bg-gradient-to-r from-orange-500 to-amber-600 text-white hover:from-orange-600 hover:to-amber-700' 
+                      : 'bg-gradient-to-r from-teal-500 to-cyan-600 text-white hover:from-teal-600 hover:to-cyan-700'
+                  }`}
+                >
+                  {state.isRunning ? <><Pause size={16}/> Pause</> : <><Play size={16}/> Start</>}
+                </button>
+                <button 
+                  onClick={() => dispatch({type: 'STEP'})} 
+                  disabled={state.isRunning} 
+                  className="flex items-center justify-center gap-2 px-3 py-2 bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-semibold rounded-lg hover:from-cyan-600 hover:to-blue-700 transition-all duration-300 shadow-md hover:shadow-lg hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 text-sm"
+                >
+                  <SkipForward size={16}/> Step
+                </button>
+              </div>
             </div>
-            <label className="text-sm font-medium mb-2 block flex items-center gap-2">
-              <Gauge size={16} className="text-text-muted-light dark:text-text-muted-dark" />
-              Speed
-            </label>
-            <input type="range" min="50" max="950" value={1000 - state.speed} onChange={e => dispatch({type: 'SET_SPEED', payload: Number(e.target.value)})} className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700 accent-teal-500"/>
+
+            {/* Reset Control */}
+            <div className="mb-4 p-3 rounded-lg bg-gradient-to-br from-gray-500/5 to-gray-600/5 border border-gray-300 dark:border-gray-700">
+              <h3 className="text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2 flex items-center gap-1">
+                <RotateCcw size={14} />
+                Reset
+              </h3>
+              <button 
+                onClick={() => dispatch({type: 'RESET'})} 
+                className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-gradient-to-r from-gray-600 to-gray-700 text-white font-semibold rounded-lg hover:from-gray-700 hover:to-gray-800 transition-all duration-300 shadow-md hover:shadow-lg hover:scale-105 text-sm"
+              >
+                <RotateCcw size={16}/> Reset Simulation
+              </button>
+            </div>
+
+            {/* Speed Control */}
+            <div className="mb-4 p-3 rounded-lg bg-gradient-to-br from-blue-500/5 to-indigo-500/5 border border-blue-300 dark:border-blue-700">
+              <h3 className="text-xs font-semibold text-blue-600 dark:text-blue-400 mb-2 flex items-center gap-1">
+                <Gauge size={14} />
+                Simulation Speed
+              </h3>
+              <input 
+                type="range" 
+                min="50" 
+                max="950" 
+                value={1000 - state.speed} 
+                onChange={e => dispatch({type: 'SET_SPEED', payload: Number(e.target.value)})} 
+                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700 accent-teal-500"
+              />
+              <div className="flex justify-between text-xs text-text-muted-light dark:text-text-muted-dark mt-1">
+                <span>Slow</span>
+                <span>Fast</span>
+              </div>
+            </div>
+
+            {/* Deadlock Resolution (Conditional) */}
+            {state.mode === 'DINING_PHILOSOPHERS' && state.metrics.deadlocks > 0 && (
+              <div className="p-3 rounded-lg bg-gradient-to-br from-red-500/10 to-orange-500/10 border-2 border-red-500 animate-pulse">
+                <h3 className="text-xs font-semibold text-red-600 dark:text-red-400 mb-2 flex items-center gap-1">
+                  <AlertTriangle size={14} />
+                  Deadlock Detected!
+                </h3>
+                <button 
+                  onClick={() => dispatch({ type: 'RESOLVE_DEADLOCK' })} 
+                  className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-gradient-to-r from-red-600 to-red-700 text-white font-semibold rounded-lg hover:from-red-700 hover:to-red-800 transition-all duration-300 shadow-md hover:shadow-lg text-sm"
+                >
+                  <AlertTriangle size={16}/> Resolve Deadlock
+                </button>
+              </div>
+            )}
           </Card>
           <MetricsPanel state={state}/>
           <LogPanel log={state.log}/>
