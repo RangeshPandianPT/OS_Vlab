@@ -1,7 +1,7 @@
 import React, { useState, useReducer, useEffect, useRef, useMemo, useCallback } from 'react';
 import type { SyncSimulationMode, SyncThread, ThreadState, SyncMetrics, LogEntry } from '../types';
 import Card from '../components/Card';
-import { Play, Pause, RotateCcw, SkipForward, ChevronDown, ChevronUp, Lock, Users, Coffee, Scissors, BookOpen, Key, GitCommit, GitMerge, AlertTriangle } from 'lucide-react';
+import { Play, Pause, RotateCcw, SkipForward, ChevronDown, ChevronUp, Lock, Users, Coffee, Scissors, BookOpen, Key, GitCommit, GitMerge, AlertTriangle, Activity, Gauge, TrendingUp, Zap, CheckCircle } from 'lucide-react';
 import AnimatedNumber from '../components/AnimatedNumber';
 
 // --- CONSTANTS & CONFIGS ---
@@ -380,18 +380,59 @@ const ThreadsAndSyncPage: React.FC = () => {
   }, [state.mode]);
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-3xl font-bold">Threads & Synchronization</h1>
+    <div className="space-y-6 md:space-y-8">
+      <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-teal-500 via-cyan-500 to-blue-600 bg-clip-text text-transparent">Threads & Synchronization</h1>
+
+      {/* Educational Overview */}
+      <Card className="p-4 sm:p-6 bg-gradient-to-br from-teal-500/5 via-cyan-500/5 to-blue-500/5 border-teal-200 dark:border-teal-800">
+        <h2 className="text-xl font-semibold mb-3 flex items-center gap-2">
+          <BookOpen className="text-teal-500" size={24} />
+          What is Thread Synchronization?
+        </h2>
+        <p className="text-sm sm:text-base leading-relaxed mb-4">
+          Thread synchronization is a mechanism that ensures <strong>coordinated access</strong> to shared resources among multiple threads.
+          Without proper synchronization, threads can interfere with each other, causing <strong>race conditions</strong> and data inconsistencies.
+          Common synchronization primitives include <strong className="text-teal-600 dark:text-teal-400">mutexes</strong> (mutual exclusion locks), 
+          <strong className="text-cyan-600 dark:text-cyan-400"> semaphores</strong> (counters for resource availability), and 
+          <strong className="text-blue-600 dark:text-blue-400"> monitors</strong>. These tools help prevent deadlocks, starvation, and ensure thread safety.
+        </p>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
+          <div className="p-3 rounded-lg bg-white/50 dark:bg-gray-800/50 border border-border-light dark:border-border-dark">
+            <h3 className="font-semibold text-teal-600 dark:text-teal-400 mb-1">Mutex</h3>
+            <p className="text-xs text-text-muted-light dark:text-text-muted-dark">Exclusive access</p>
+          </div>
+          <div className="p-3 rounded-lg bg-white/50 dark:bg-gray-800/50 border border-border-light dark:border-border-dark">
+            <h3 className="font-semibold text-cyan-600 dark:text-cyan-400 mb-1">Semaphore</h3>
+            <p className="text-xs text-text-muted-light dark:text-text-muted-dark">Resource counter</p>
+          </div>
+          <div className="p-3 rounded-lg bg-white/50 dark:bg-gray-800/50 border border-border-light dark:border-border-dark">
+            <h3 className="font-semibold text-blue-600 dark:text-blue-400 mb-1">Readers-Writers</h3>
+            <p className="text-xs text-text-muted-light dark:text-text-muted-dark">Concurrent reads</p>
+          </div>
+          <div className="p-3 rounded-lg bg-white/50 dark:bg-gray-800/50 border border-border-light dark:border-border-dark">
+            <h3 className="font-semibold text-indigo-600 dark:text-indigo-400 mb-1">Philosophers</h3>
+            <p className="text-xs text-text-muted-light dark:text-text-muted-dark">Deadlock demo</p>
+          </div>
+        </div>
+      </Card>
+
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left Panel */}
         <div className="lg:col-span-3 space-y-6">
-          <Card className="p-4">
-              <h2 className="text-xl font-semibold mb-3">Simulation Mode</h2>
-              <div className="space-y-1">
+          <Card className="p-4 sm:p-5">
+              <h2 className="text-lg sm:text-xl font-semibold mb-4 flex items-center gap-2">
+                <Activity className="text-teal-500" size={20} />
+                Simulation Mode
+              </h2>
+              <div className="space-y-2">
                 {SIMULATION_MODES.map(m => (
                     <button key={m.id} onClick={() => dispatch({type: 'SET_MODE', payload: m.id})}
-                        className={`w-full flex items-center gap-3 p-2 rounded-lg text-sm font-medium transition-colors ${state.mode === m.id ? 'bg-accent/10 text-accent' : 'hover:bg-gray-200 dark:hover:bg-gray-800'}`}>
-                        <m.icon size={16} /> {m.name}
+                        className={`w-full flex items-center gap-3 p-3 rounded-lg text-sm font-medium transition-all duration-300 ${
+                          state.mode === m.id 
+                            ? 'bg-gradient-to-r from-teal-500 to-cyan-600 text-white shadow-md scale-105' 
+                            : 'bg-gray-100 dark:bg-gray-800 text-text-light dark:text-text-dark hover:bg-gray-200 dark:hover:bg-gray-700'
+                        }`}>
+                        <m.icon size={18} /> {m.name}
                     </button>
                 ))}
               </div>
@@ -401,16 +442,23 @@ const ThreadsAndSyncPage: React.FC = () => {
 
         {/* Center Panel */}
         <div className="lg:col-span-6">
-          <Card className="p-4 h-[600px] relative">
+          <Card className="p-4 sm:p-5 h-[600px] relative bg-gradient-to-br from-teal-500/5 to-cyan-500/5 border-teal-200 dark:border-teal-800">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="w-3 h-3 rounded-full bg-gradient-to-r from-teal-500 to-cyan-500 animate-pulse"></div>
+              <h2 className="text-lg font-semibold">Live Visualization</h2>
+            </div>
             <VisualizationPanel state={state} />
           </Card>
         </div>
 
         {/* Right Panel */}
         <div className="lg:col-span-3 space-y-6">
-          <Card className="p-4">
-            <h2 className="text-xl font-semibold mb-3">Controls</h2>
-            <div className="grid grid-cols-2 gap-2 mb-3">
+          <Card className="p-4 sm:p-5">
+            <h2 className="text-lg sm:text-xl font-semibold mb-4 flex items-center gap-2">
+              <Zap className="text-cyan-500" size={20} />
+              Controls
+            </h2>
+            <div className="grid grid-cols-2 gap-2 mb-4">
                 <button onClick={()=> dispatch({type: state.isRunning ? 'PAUSE':'START'})} className="btn-primary">{state.isRunning ? <><Pause size={16}/> Pause</> : <><Play size={16}/> Start</>}</button>
                 <button onClick={()=> dispatch({type: 'STEP'})} disabled={state.isRunning} className="btn-secondary disabled:opacity-50"><SkipForward size={16}/> Step</button>
                 <button onClick={()=> dispatch({type: 'RESET'})} className="btn-secondary col-span-2"><RotateCcw size={16}/> Reset</button>
@@ -420,24 +468,48 @@ const ThreadsAndSyncPage: React.FC = () => {
                     </button>
                 )}
             </div>
-            <label className="text-sm font-medium">Speed</label>
-            <input type="range" min="50" max="950" value={1000 - state.speed} onChange={e => dispatch({type: 'SET_SPEED', payload: Number(e.target.value)})} className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"/>
+            <label className="text-sm font-medium mb-2 block flex items-center gap-2">
+              <Gauge size={16} className="text-text-muted-light dark:text-text-muted-dark" />
+              Speed
+            </label>
+            <input type="range" min="50" max="950" value={1000 - state.speed} onChange={e => dispatch({type: 'SET_SPEED', payload: Number(e.target.value)})} className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700 accent-teal-500"/>
           </Card>
           <MetricsPanel state={state}/>
           <LogPanel log={state.log}/>
         </div>
       </div>
-       <Card className="p-4">
+       <Card className="p-4 sm:p-6 bg-gradient-to-br from-cyan-500/5 to-blue-500/5 border-cyan-200 dark:border-cyan-800">
           <button onClick={() => setIsEduOpen(!isEduOpen)} className="w-full flex justify-between items-center text-left">
-              <h2 className="text-xl font-semibold">{educationalContent.title}</h2>
-              {isEduOpen ? <ChevronUp/> : <ChevronDown/>}
+              <h2 className="text-xl sm:text-2xl font-semibold flex items-center gap-2">
+                <CheckCircle className="text-cyan-500" size={24} />
+                {educationalContent.title}
+              </h2>
+              {isEduOpen ? <ChevronUp className="text-cyan-500"/> : <ChevronDown className="text-cyan-500"/>}
           </button>
-          {isEduOpen && <p className="mt-2 text-sm text-text-muted-light dark:text-text-muted-dark">{educationalContent.content}</p>}
+          {isEduOpen && (
+            <div className="mt-4 space-y-3">
+              <p className="text-sm sm:text-base text-text-muted-light dark:text-text-muted-dark leading-relaxed">
+                {educationalContent.content}
+              </p>
+              {state.mode === 'DINING_PHILOSOPHERS' && (
+                <div className="p-4 rounded-lg bg-gradient-to-br from-red-500/10 to-orange-500/10 border border-red-300 dark:border-red-700">
+                  <h3 className="font-semibold text-red-700 dark:text-red-400 mb-2 flex items-center gap-2">
+                    <AlertTriangle size={18} />
+                    Deadlock Prevention
+                  </h3>
+                  <p className="text-sm text-text-muted-light dark:text-text-muted-dark">
+                    Enable "Prevent Deadlock" to use <strong>resource ordering</strong> - philosophers always pick up the 
+                    lower-numbered fork first. This breaks the circular wait condition and prevents deadlock.
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
        </Card>
       <style>{`
-        .btn-primary { @apply flex items-center justify-center gap-2 px-4 py-2 bg-accent text-white font-semibold rounded-lg shadow-md hover:bg-accent-hover transition-colors; }
-        .btn-secondary { @apply flex items-center justify-center gap-2 px-4 py-2 bg-gray-200 dark:bg-gray-700 font-semibold rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors; }
-        .btn-danger { @apply flex items-center justify-center gap-2 px-4 py-2 bg-red-600 text-white font-semibold rounded-lg shadow-md hover:bg-red-700 transition-colors; }
+        .btn-primary { @apply flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-r from-teal-500 to-cyan-600 text-white font-semibold rounded-lg shadow-md hover:from-teal-600 hover:to-cyan-700 transition-all duration-300; }
+        .btn-secondary { @apply flex items-center justify-center gap-2 px-4 py-2 bg-gray-200 dark:bg-gray-700 font-semibold rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-all duration-300; }
+        .btn-danger { @apply flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-r from-red-600 to-orange-600 text-white font-semibold rounded-lg shadow-md hover:from-red-700 hover:to-orange-700 transition-all duration-300 animate-pulse; }
       `}</style>
     </div>
   );
@@ -468,64 +540,98 @@ const ConfigPanel: React.FC<{mode: SyncSimulationMode, config: any, onUpdate: (k
                     <label className="text-sm font-medium text-text-muted-light dark:text-text-muted-dark">Prevent Deadlock</label>
                     <label className="relative inline-flex items-center cursor-pointer">
                         <input type="checkbox" checked={config.preventDeadlock} onChange={e => onUpdate('preventDeadlock', e.target.checked)} className="sr-only peer" />
-                        <div className="w-11 h-6 bg-gray-200 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-accent"></div>
+                        <div className="w-11 h-6 bg-gray-200 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-gradient-to-r peer-checked:from-teal-500 peer-checked:to-cyan-600"></div>
                     </label>
                 </div>
             </>;
             default: return <p className="text-sm text-text-muted-light dark:text-text-muted-dark">No configuration for this mode.</p>;
         }
     }
-    return <Card className="p-4"><h2 className="text-xl font-semibold mb-3">Configuration</h2><div className="space-y-3">{content()}</div></Card>;
+    return <Card className="p-4 sm:p-5">
+      <h2 className="text-lg sm:text-xl font-semibold mb-4 flex items-center gap-2">
+        <Gauge className="text-blue-500" size={20} />
+        Configuration
+      </h2>
+      <div className="space-y-3">{content()}</div>
+    </Card>;
 }
 
 const ConfigInput: React.FC<{label:string, value:number, onChange:(v:number)=>void, min?:number, max?:number, step?:number}> = ({label, value, onChange, ...props}) => (
     <div>
         <label className="text-sm font-medium text-text-muted-light dark:text-text-muted-dark">{label}</label>
-        <input type="number" value={value} onChange={e => onChange(Number(e.target.value))} {...props} className="w-full p-2 mt-1 border border-border-light dark:border-border-dark rounded-lg bg-bkg-light dark:bg-bkg-dark focus:ring-2 focus:ring-accent focus:outline-none" />
+        <input type="number" value={value} onChange={e => onChange(Number(e.target.value))} {...props} className="w-full p-2 mt-1 border border-border-light dark:border-border-dark rounded-lg bg-bkg-light dark:bg-bkg-dark focus:ring-2 focus:ring-teal-500 focus:outline-none transition-all duration-300" />
     </div>
 );
 
 const MetricsPanel: React.FC<{state:SimState}> = ({state}) => {
     const { metrics, time, mode } = state;
     return (
-    <Card className="p-4">
-        <h2 className="text-xl font-semibold mb-3">Metrics</h2>
+    <Card className="p-4 sm:p-5">
+        <h2 className="text-lg sm:text-xl font-semibold mb-4 flex items-center gap-2">
+          <TrendingUp className="text-teal-500" size={20} />
+          Metrics
+        </h2>
         <div className="grid grid-cols-2 gap-3 text-center">
-            <MetricBox label="Time" value={time} unit=" ticks"/>
+            <MetricBox label="Time" value={time} unit=" ticks" color="teal"/>
             {mode === 'MUTEX' && <>
-                <MetricBox label="Acquisitions" value={metrics.totalAcquisitions} />
-                <MetricBox label="Total Waits" value={metrics.totalWaits} />
+                <MetricBox label="Acquisitions" value={metrics.totalAcquisitions} color="cyan"/>
+                <MetricBox label="Total Waits" value={metrics.totalWaits} color="blue"/>
             </>}
             {mode === 'SEMAPHORE' && <>
-                <MetricBox label="Items Produced" value={metrics.itemsProduced} />
-                <MetricBox label="Items Consumed" value={metrics.itemsConsumed} />
+                <MetricBox label="Items Produced" value={metrics.itemsProduced} color="green"/>
+                <MetricBox label="Items Consumed" value={metrics.itemsConsumed} color="blue"/>
             </>}
             {mode === 'DINING_PHILOSOPHERS' && metrics.deadlocks > 0 && 
-                <div className="p-2 col-span-2 bg-red-500/10 rounded-lg text-red-500 font-bold flex items-center justify-center gap-2">
-                    <AlertTriangle size={16}/> DEADLOCKED
+                <div className="p-3 col-span-2 bg-gradient-to-br from-red-500/20 to-orange-500/20 border border-red-400 dark:border-red-600 rounded-lg text-red-600 dark:text-red-400 font-bold flex items-center justify-center gap-2 animate-pulse">
+                    <AlertTriangle size={18}/> DEADLOCKED
                 </div>
             }
         </div>
     </Card>
 )};
 
-const MetricBox: React.FC<{label:string, value:number, unit?:string}> = ({label, value, unit}) => (
-    <div className="p-2 bg-gray-50 dark:bg-gray-800 rounded-lg">
-        <p className="text-xs text-text-muted-light dark:text-text-muted-dark">{label}</p>
-        <div className="text-lg font-bold"><AnimatedNumber value={value} precision={0}/>{unit}</div>
-    </div>
-);
+const MetricBox: React.FC<{label:string, value:number, unit?:string, color:string}> = ({label, value, unit, color}) => {
+    const gradientMap: Record<string, string> = {
+        teal: 'from-teal-500/20 to-cyan-500/20 border-teal-400 dark:border-teal-600 text-teal-700 dark:text-teal-300',
+        cyan: 'from-cyan-500/20 to-blue-500/20 border-cyan-400 dark:border-cyan-600 text-cyan-700 dark:text-cyan-300',
+        blue: 'from-blue-500/20 to-indigo-500/20 border-blue-400 dark:border-blue-600 text-blue-700 dark:text-blue-300',
+        green: 'from-green-500/20 to-emerald-500/20 border-green-400 dark:border-green-600 text-green-700 dark:text-green-300',
+    };
+    
+    return (
+        <div className={`p-3 bg-gradient-to-br ${gradientMap[color]} border rounded-lg transition-all duration-300 hover:scale-105`}>
+            <p className="text-xs font-medium mb-1">{label}</p>
+            <div className="text-lg sm:text-xl font-bold">
+                <AnimatedNumber value={value} precision={0}/>
+                {unit && <span className="text-sm font-medium">{unit}</span>}
+            </div>
+        </div>
+    );
+};
 
 const LogPanel: React.FC<{log: LogEntry[]}> = ({log}) => (
-    <Card className="p-4">
-        <h2 className="text-xl font-semibold mb-3">Event Log</h2>
-        <div className="h-48 overflow-y-auto space-y-2 text-xs font-mono">
-            {log.map(entry => (
-                <div key={entry.id} className="flex items-start gap-1.5">
-                    <p className="text-text-muted-light dark:text-text-muted-dark flex-shrink-0">{entry.timestamp}</p>
-                    <p className="flex-grow break-words">{entry.message}</p>
-                </div>
-            ))}
+    <Card className="p-4 sm:p-5">
+        <h2 className="text-lg sm:text-xl font-semibold mb-3 flex items-center gap-2">
+          <Activity className="text-blue-500" size={20} />
+          Event Log
+        </h2>
+        <div className="h-48 overflow-y-auto space-y-1.5 text-xs font-mono">
+            {log.map(entry => {
+                const bgColor = entry.type === 'error' 
+                    ? 'bg-red-500/10 border-l-2 border-red-500' 
+                    : entry.type === 'success'
+                    ? 'bg-green-500/10 border-l-2 border-green-500'
+                    : entry.type === 'action'
+                    ? 'bg-blue-500/10 border-l-2 border-blue-500'
+                    : 'bg-gray-100 dark:bg-gray-800';
+                    
+                return (
+                    <div key={entry.id} className={`flex items-start gap-2 p-2 rounded ${bgColor}`}>
+                        <p className="text-text-muted-light dark:text-text-muted-dark flex-shrink-0 text-[10px]">{entry.timestamp}</p>
+                        <p className="flex-grow break-words text-[11px]">{entry.message}</p>
+                    </div>
+                );
+            })}
         </div>
     </Card>
 );
@@ -534,8 +640,9 @@ const VisualizationPanel: React.FC<{state: SimState}> = ({state}) => {
     const { mode, threads, resources, config, metrics } = state;
     
     const ThreadComponent: React.FC<{t:SyncThread, x:number, y:number, isDeadlocked?: boolean}> = ({t, x, y, isDeadlocked = false}) => (
-        <g transform={`translate(${x}, ${y})`} className="group transition-transform duration-500 ease-in-out cursor-pointer">
-            <circle cx="0" cy="0" r="22" fill={t.color} stroke={isDeadlocked ? '#ef4444' : '#fff'} strokeWidth={isDeadlocked ? 4 : 2} className={isDeadlocked ? 'animate-pulse' : ''} />
+        <g transform={`translate(${x}, ${y})`} className="group transition-transform duration-500 ease-in-out cursor-pointer hover:scale-110">
+            <circle cx="0" cy="0" r="22" fill={t.color} stroke={isDeadlocked ? '#ef4444' : '#fff'} strokeWidth={isDeadlocked ? 4 : 2} className={isDeadlocked ? 'animate-pulse' : ''} opacity="0.9" />
+            <circle cx="0" cy="0" r="26" fill="none" stroke={t.color} strokeWidth="1.5" opacity="0.3" className="group-hover:opacity-100 transition-opacity duration-300" />
             <text x="0" y="5" textAnchor="middle" fill="#fff" fontSize="12" fontWeight="bold" style={{pointerEvents: 'none'}}>{t.name}</text>
             <title>{t.name}: {t.message}</title>
         </g>
@@ -543,9 +650,14 @@ const VisualizationPanel: React.FC<{state: SimState}> = ({state}) => {
 
     switch(mode) {
         case 'MUTEX': return <svg width="100%" height="100%" viewBox="0 0 400 600">
-            <rect x="150" y="250" width="100" height="100" fill="rgba(59, 130, 246, 0.1)" strokeDasharray="5" stroke="#3b82f6" rx="10"/>
-            <text x="200" y="240" textAnchor="middle" fontWeight="bold" className="fill-current">Critical Section</text>
-            {resources.owner !== null && <Lock x="185" y="285" size={30} className="text-accent" />}
+            <rect x="150" y="250" width="100" height="100" fill="rgba(20, 184, 166, 0.1)" strokeDasharray="5" stroke="#14b8a6" strokeWidth="2" rx="10"/>
+            <text x="200" y="240" textAnchor="middle" fontWeight="bold" fontSize="14" className="fill-current">Critical Section</text>
+            {resources.owner !== null && (
+                <g transform="translate(200, 300)">
+                    <Lock x="-15" y="-15" size={30} className="text-teal-500" />
+                    <circle cx="0" cy="0" r="20" fill="none" stroke="#14b8a6" strokeWidth="2" className="animate-ping" opacity="0.5" />
+                </g>
+            )}
             {threads.map((t) => {
                  let x = 75, y = 100 + t.id * 80;
                  if (t.state === 'ACTIVE') { x = 200; y = 300; }
@@ -554,21 +666,40 @@ const VisualizationPanel: React.FC<{state: SimState}> = ({state}) => {
             })}
         </svg>;
         case 'SEMAPHORE': return <svg width="100%" height="100%" viewBox="0 0 400 600">
-            <text x="200" y="30" textAnchor="middle" fontWeight="bold" className="fill-current">Shared Buffer ({resources.buffer.length}/{config.bufferSize})</text>
+            <text x="200" y="30" textAnchor="middle" fontWeight="bold" fontSize="14" className="fill-current">Shared Buffer ({resources.buffer.length}/{config.bufferSize})</text>
+            <rect x="25" y="45" width={config.bufferSize * 45 + 10} height="50" fill="rgba(20, 184, 166, 0.05)" stroke="#14b8a6" strokeWidth="1.5" rx="8" />
             {Array.from({length: config.bufferSize}).map((_, i) => (
-                <rect key={i} x={30 + i * 45} y="50" width="40" height="40" stroke="#9ca3af" fill={i < resources.buffer.length ? '#3b82f6' : 'transparent'} rx="5"/>
+                <g key={i}>
+                    <rect x={30 + i * 45} y="50" width="40" height="40" stroke="#14b8a6" strokeWidth="2" fill={i < resources.buffer.length ? 'url(#bufferGradient)' : 'transparent'} rx="5"/>
+                    {i < resources.buffer.length && (
+                        <circle cx={50 + i * 45} cy="70" r="3" fill="#14b8a6" className="animate-pulse" />
+                    )}
+                </g>
             ))}
+            <defs>
+                <linearGradient id="bufferGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" style={{stopColor: '#14b8a6', stopOpacity: 0.7}} />
+                    <stop offset="100%" style={{stopColor: '#06b6d4', stopOpacity: 0.9}} />
+                </linearGradient>
+            </defs>
+            <text x="30" y="120" fontSize="12" className="fill-current font-semibold">Producers</text>
+            <text x="320" y="120" fontSize="12" className="fill-current font-semibold">Consumers</text>
             {threads.map((t, i) => {
                 const isProducer = i < config.producers;
                 let x = isProducer ? 75 : 325;
-                let y = 200 + t.id * 80;
+                let y = 150 + t.id * 70;
                 return <ThreadComponent key={t.id} t={t} x={x} y={y} />
             })}
         </svg>;
         case 'READERS_WRITERS': return <svg width="100%" height="100%" viewBox="0 0 400 600">
-            <rect x="100" y="200" width="200" height="200" fill="rgba(16, 185, 129, 0.1)" stroke="#10b981" strokeDasharray="5" rx="10"/>
-            <text x="200" y="190" textAnchor="middle" fontWeight="bold" className="fill-current">Shared Resource</text>
-            <text x="200" y="390" textAnchor="middle" className="fill-current">Readers: {resources.readers} {resources.writerActive ? '| Writer Active' : ''}</text>
+            <rect x="100" y="200" width="200" height="200" fill="rgba(6, 182, 212, 0.1)" stroke="#06b6d4" strokeWidth="2" strokeDasharray="5" rx="10"/>
+            <text x="200" y="190" textAnchor="middle" fontWeight="bold" fontSize="14" className="fill-current">Shared Resource</text>
+            <text x="200" y="415" textAnchor="middle" fontSize="12" className="fill-current font-semibold">
+                <tspan fill="#14b8a6">Readers: {resources.readers}</tspan> 
+                {resources.writerActive && <tspan fill="#ef4444"> | Writer Active</tspan>}
+            </text>
+            <text x="50" y="80" fontSize="12" className="fill-current font-semibold">Readers</text>
+            <text x="320" y="80" fontSize="12" className="fill-current font-semibold">Writers</text>
              {threads.map((t, i) => {
                 const isReader = i < config.readers;
                 let x = isReader ? 50 : 350;
@@ -581,7 +712,20 @@ const VisualizationPanel: React.FC<{state: SimState}> = ({state}) => {
         case 'DINING_PHILOSOPHERS': {
             const R = 150, CX=200, CY=300;
             return <svg width="100%" height="100%" viewBox="0 0 400 600">
-                <circle cx={CX} cy={CY} r={R-40} fill="#f3f4f6" stroke="#d1d5db"/>
+                <circle cx={CX} cy={CY} r={R-40} fill="url(#tableGradient)" stroke="#14b8a6" strokeWidth="2"/>
+                <defs>
+                    <linearGradient id="tableGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" style={{stopColor: '#f3f4f6', stopOpacity: 1}} />
+                        <stop offset="100%" style={{stopColor: '#e5e7eb', stopOpacity: 1}} />
+                    </linearGradient>
+                    <radialGradient id="forkGradient">
+                        <stop offset="0%" style={{stopColor: '#fbbf24', stopOpacity: 1}} />
+                        <stop offset="100%" style={{stopColor: '#f59e0b', stopOpacity: 0.8}} />
+                    </radialGradient>
+                </defs>
+                <text x={CX} y="30" textAnchor="middle" fontWeight="bold" fontSize="14" className="fill-current">
+                    Dining Philosophers {metrics.deadlocks > 0 && <tspan fill="#ef4444">(DEADLOCKED!)</tspan>}
+                </text>
                 {threads.map((p, i) => {
                     const angle = (i / config.count) * 2 * Math.PI - Math.PI / 2;
                     const x = CX + Math.cos(angle) * R;
@@ -593,10 +737,11 @@ const VisualizationPanel: React.FC<{state: SimState}> = ({state}) => {
                     const angle = (i / config.count) * 2 * Math.PI - Math.PI / 2 + (Math.PI/config.count);
                     const ownerId = resources.forks[i];
                     const owner = threads.find(p => p.id === ownerId);
-                    const color = owner ? owner.color : '#9ca3af';
+                    const isTaken = owner !== undefined;
 
                     return <g key={i} transform={`translate(${CX + Math.cos(angle)*(R-60)}, ${CY + Math.sin(angle)*(R-60)})`}>
-                        <Key size={25} style={{color: color}} />
+                        <circle cx="0" cy="0" r="16" fill={isTaken ? 'url(#forkGradient)' : '#d1d5db'} stroke={isTaken ? '#f59e0b' : '#9ca3af'} strokeWidth="2" className={isTaken ? 'animate-pulse' : ''} />
+                        <Key size={20} x="-10" y="-10" style={{color: isTaken ? '#78350f' : '#6b7280'}} />
                     </g>;
                 })}
             </svg>;
