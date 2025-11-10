@@ -40,9 +40,9 @@ const Header: React.FC<HeaderProps> = ({ setPage, currentPage, openModal, isSimu
   return (
     <header className="sticky top-0 z-50 bg-card-light/80 dark:bg-card-dark/80 backdrop-blur-xl border-b border-border-light dark:border-border-dark flex-shrink-0">
       <div className="container mx-auto px-4">
-        <div className="flex justify-between items-center h-16">
+        <div className="flex justify-between items-center h-14 md:h-16">
           <button onClick={() => setPage('home')} className="flex items-center gap-2 text-xl font-bold text-text-light dark:text-text-dark">
-            <LogoIcon className="h-8 w-8 text-accent" />
+            <LogoIcon className="h-7 w-7 md:h-8 md:w-8 text-accent" />
             <span>OS_VLab</span>
           </button>
 
@@ -82,7 +82,7 @@ const Header: React.FC<HeaderProps> = ({ setPage, currentPage, openModal, isSimu
               </>
             )}
             <button
-              className="md:hidden p-2"
+              className="md:hidden p-3 rounded-md"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               aria-label="Toggle menu"
             >
