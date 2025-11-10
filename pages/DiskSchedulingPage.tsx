@@ -375,42 +375,64 @@ const DiskSchedulingPage: React.FC = () => {
           <div className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-4 mb-4 overflow-x-auto">
             <div className="min-w-[600px]">
               {/* Track scale */}
-              <div className="relative h-24 mb-4">
+              <div className="relative h-32 mb-4">
                 <div className="absolute inset-0 flex items-center">
                   <div className="w-full h-1 bg-gray-300 dark:bg-gray-600 rounded"></div>
                 </div>
 
                 {/* Request markers */}
-                {requests.map((req, idx) => (
-                  <div
-                    key={`req-${idx}`}
-                    className="absolute"
-                    style={{ left: `${(req / diskSize) * 100}%`, top: '50%', transform: 'translate(-50%, -50%)' }}
-                  >
-                    <div className={`w-3 h-3 rounded-full ${
-                      simulation.sequence.slice(0, currentStep + 1).includes(req)
-                        ? 'bg-green-500'
-                        : 'bg-red-500'
-                    }`}></div>
-                    <span className="absolute top-6 left-1/2 -translate-x-1/2 text-xs font-medium whitespace-nowrap">
-                      {req}
-                    </span>
-                  </div>
-                ))}
+                {requests
+                  .map((req, idx) => ({ req, idx, pos: (req / diskSize) * 100 }))
+                  .sort((a, b) => a.pos - b.pos)
+                  .map(({ req, idx, pos }, sortedIdx, arr) => {
+                    // Detect overlaps and alternate label positions
+                    let labelOffset = 6; // Default offset below marker
+                    
+                    // Check if too close to previous marker
+                    if (sortedIdx > 0) {
+                      const prevPos = arr[sortedIdx - 1].pos;
+                      const distance = pos - prevPos;
+                      
+                      // If markers are very close (within 5% of track), alternate positioning
+                      if (distance < 5) {
+                        labelOffset = sortedIdx % 2 === 0 ? 6 : -20; // Alternate above/below
+                      }
+                    }
+                    
+                    return (
+                      <div
+                        key={`req-${idx}`}
+                        className="absolute"
+                        style={{ left: `${pos}%`, top: '50%', transform: 'translate(-50%, -50%)' }}
+                      >
+                        <div className={`w-3 h-3 rounded-full ${
+                          simulation.sequence.slice(0, currentStep + 1).includes(req)
+                            ? 'bg-green-500'
+                            : 'bg-red-500'
+                        }`}></div>
+                        <span 
+                          className="absolute left-1/2 -translate-x-1/2 text-xs font-medium whitespace-nowrap bg-white/90 dark:bg-gray-900/90 px-1 rounded"
+                          style={{ top: `${labelOffset}px` }}
+                        >
+                          {req}
+                        </span>
+                      </div>
+                    );
+                  })}
 
                 {/* Disk head */}
                 <div
-                  className="absolute transition-all duration-500"
+                  className="absolute transition-all duration-500 z-10"
                   style={{ left: `${(currentHeadPos / diskSize) * 100}%`, top: '50%', transform: 'translate(-50%, -50%)' }}
                 >
                   <div className="w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-t-[12px] border-t-accent animate-pulse"></div>
-                  <span className="absolute -top-8 left-1/2 -translate-x-1/2 text-sm font-bold text-accent whitespace-nowrap">
+                  <span className="absolute -top-10 left-1/2 -translate-x-1/2 text-sm font-bold text-accent whitespace-nowrap bg-white/95 dark:bg-gray-900/95 px-2 py-1 rounded shadow-sm">
                     Head: {currentHeadPos}
                   </span>
                 </div>
 
                 {/* Track markers */}
-                <div className="absolute inset-x-0 -bottom-6 flex justify-between text-xs text-text-muted-light dark:text-text-muted-dark">
+                <div className="absolute inset-x-0 -bottom-8 flex justify-between text-xs text-text-muted-light dark:text-text-muted-dark">
                   <span>0</span>
                   <span>{Math.floor(diskSize / 2)}</span>
                   <span>{diskSize - 1}</span>
