@@ -20,6 +20,7 @@ import SavedSimulationsPage from './pages/SavedSimulationsPage';
 import TopicsPage from './pages/TopicsPage';
 import DocsPage from './pages/DocsPage';
 import ProgressPage from './pages/ProgressPage';
+import AboutPage from './pages/AboutPage';
 import { useAuth } from './hooks/useAuth';
 
 type ModalType = 'login' | 'signup' | null;
@@ -57,6 +58,8 @@ const App: React.FC = () => {
         return <DocsPage />;
       case 'progress':
         return <ProgressPage />;
+      case 'about':
+        return <AboutPage />;
       default:
         return <HomePage setPage={setPage} />;
     }
@@ -88,7 +91,7 @@ const App: React.FC = () => {
             <div className={!isSimulationPage ? 'container mx-auto' : ''}>
               {renderPage()}
             </div>
-            <Footer />
+            <Footer currentPage={page} />
           </main>
         </div>
       </div>
