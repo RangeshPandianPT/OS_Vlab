@@ -504,6 +504,178 @@ const DiskSchedulingPage: React.FC = () => {
           </div>
         </Card>
       )}
+
+      {/* Educational Content */}
+      <Card className="p-6">
+        <h2 className="text-xl font-semibold mb-3">What is Disk Scheduling?</h2>
+        <p className="text-text-muted-light dark:text-text-muted-dark leading-relaxed">
+          Disk scheduling algorithms determine the order in which disk I/O requests are serviced. The goal is to minimize
+          the total seek time (the time it takes for the disk head to move to the requested track). Efficient disk scheduling
+          improves overall system performance by reducing access latency and maximizing throughput. Different algorithms make
+          different trade-offs between fairness, average seek time, and worst-case performance.
+        </p>
+      </Card>
+
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+        <Card className="p-5">
+          <h3 className="font-semibold mb-2">FCFS (First-Come, First-Served)</h3>
+          <p className="text-sm text-text-muted-light dark:text-text-muted-dark mb-2">
+            Services requests in the order they arrive, like a simple queue. No reordering or optimization.
+          </p>
+          <p className="text-sm"><strong>Pros:</strong> Fair, simple, no starvation.</p>
+          <p className="text-sm"><strong>Cons:</strong> Can result in excessive head movement and high seek times.</p>
+        </Card>
+
+        <Card className="p-5">
+          <h3 className="font-semibold mb-2">SSTF (Shortest Seek Time First)</h3>
+          <p className="text-sm text-text-muted-light dark:text-text-muted-dark mb-2">
+            Services the request closest to the current head position. Greedy algorithm that minimizes immediate seek distance.
+          </p>
+          <p className="text-sm"><strong>Pros:</strong> Better average seek time than FCFS.</p>
+          <p className="text-sm"><strong>Cons:</strong> Can cause starvation for distant requests.</p>
+        </Card>
+
+        <Card className="p-5">
+          <h3 className="font-semibold mb-2">SCAN (Elevator Algorithm)</h3>
+          <p className="text-sm text-text-muted-light dark:text-text-muted-dark mb-2">
+            Head moves in one direction servicing requests, then reverses direction when it reaches the end of the disk.
+          </p>
+          <p className="text-sm"><strong>Pros:</strong> Uniform wait time, no starvation.</p>
+          <p className="text-sm"><strong>Cons:</strong> Requests at edges wait longer on average.</p>
+        </Card>
+
+        <Card className="p-5">
+          <h3 className="font-semibold mb-2">C-SCAN (Circular SCAN)</h3>
+          <p className="text-sm text-text-muted-light dark:text-text-muted-dark mb-2">
+            Similar to SCAN but only services requests in one direction, then jumps back to the start without servicing.
+          </p>
+          <p className="text-sm"><strong>Pros:</strong> More uniform wait times than SCAN.</p>
+          <p className="text-sm"><strong>Cons:</strong> Slightly higher overhead due to return jump.</p>
+        </Card>
+      </div>
+
+      <Card className="p-6">
+        <h2 className="text-xl font-semibold mb-3">Example Walkthrough (SSTF)</h2>
+        <p className="text-text-muted-light dark:text-text-muted-dark leading-relaxed mb-3">
+          Given request queue: <code className="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">98, 183, 37, 122, 14, 124, 65, 67</code> and
+          initial head position at <code className="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">53</code>, SSTF will always choose
+          the closest unserviced request:
+        </p>
+        <ol className="list-decimal pl-5 text-text-muted-light dark:text-text-muted-dark space-y-1">
+          <li>Head at 53 → Closest: 65 (distance: 12)</li>
+          <li>Head at 65 → Closest: 67 (distance: 2)</li>
+          <li>Head at 67 → Closest: 37 (distance: 30)</li>
+          <li>Head at 37 → Closest: 14 (distance: 23)</li>
+          <li>Head at 14 → Closest: 98 (distance: 84)</li>
+          <li>Head at 98 → Closest: 122 (distance: 24)</li>
+          <li>Head at 122 → Closest: 124 (distance: 2)</li>
+          <li>Head at 124 → Closest: 183 (distance: 59)</li>
+        </ol>
+        <p className="mt-3 text-sm text-text-muted-light dark:text-text-muted-dark">
+          Total seek time: 236. Compare this to FCFS or SCAN using the simulation above!
+        </p>
+      </Card>
+
+      <Card className="p-6">
+        <h2 className="text-xl font-semibold mb-3">Algorithm Comparison</h2>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-border-light dark:border-border-dark">
+                <th className="text-left py-2 px-3">Algorithm</th>
+                <th className="text-left py-2 px-3">Avg Seek Time</th>
+                <th className="text-left py-2 px-3">Fairness</th>
+                <th className="text-left py-2 px-3">Starvation Risk</th>
+                <th className="text-left py-2 px-3">Best Use Case</th>
+              </tr>
+            </thead>
+            <tbody className="text-text-muted-light dark:text-text-muted-dark">
+              <tr className="border-b border-border-light dark:border-border-dark">
+                <td className="py-2 px-3 font-medium">FCFS</td>
+                <td className="py-2 px-3">High</td>
+                <td className="py-2 px-3">Excellent</td>
+                <td className="py-2 px-3">None</td>
+                <td className="py-2 px-3">Low load, fairness priority</td>
+              </tr>
+              <tr className="border-b border-border-light dark:border-border-dark">
+                <td className="py-2 px-3 font-medium">SSTF</td>
+                <td className="py-2 px-3">Low</td>
+                <td className="py-2 px-3">Poor</td>
+                <td className="py-2 px-3">High</td>
+                <td className="py-2 px-3">High throughput, low fairness req</td>
+              </tr>
+              <tr className="border-b border-border-light dark:border-border-dark">
+                <td className="py-2 px-3 font-medium">SCAN</td>
+                <td className="py-2 px-3">Moderate</td>
+                <td className="py-2 px-3">Good</td>
+                <td className="py-2 px-3">None</td>
+                <td className="py-2 px-3">Balanced performance & fairness</td>
+              </tr>
+              <tr>
+                <td className="py-2 px-3 font-medium">C-SCAN</td>
+                <td className="py-2 px-3">Moderate</td>
+                <td className="py-2 px-3">Very Good</td>
+                <td className="py-2 px-3">None</td>
+                <td className="py-2 px-3">Uniform wait times needed</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </Card>
+
+      <Card className="p-6">
+        <h2 className="text-xl font-semibold mb-3">Performance Metrics</h2>
+        <ul className="list-disc pl-5 text-text-muted-light dark:text-text-muted-dark space-y-2">
+          <li>
+            <strong>Seek Time:</strong> Time for the disk head to move to the target track. Most significant component of disk access time.
+          </li>
+          <li>
+            <strong>Rotational Latency:</strong> Time for the platter to rotate so the target sector is under the head (not modeled in these algorithms).
+          </li>
+          <li>
+            <strong>Transfer Time:</strong> Time to actually read/write data once positioned (typically negligible compared to seek time).
+          </li>
+          <li>
+            <strong>Throughput:</strong> Number of requests serviced per unit time. Algorithms like SSTF maximize throughput but may sacrifice fairness.
+          </li>
+          <li>
+            <strong>Response Time Variance:</strong> SCAN/C-SCAN provide more predictable response times than SSTF, important for real-time systems.
+          </li>
+        </ul>
+      </Card>
+
+      <Card className="p-6">
+        <h2 className="text-xl font-semibold mb-3">Modern Considerations</h2>
+        <p className="text-text-muted-light dark:text-text-muted-dark leading-relaxed mb-3">
+          While disk scheduling algorithms are fundamental concepts, modern storage systems have evolved:
+        </p>
+        <ul className="list-disc pl-5 text-text-muted-light dark:text-text-muted-dark space-y-2">
+          <li>
+            <strong>SSDs (Solid State Drives):</strong> No mechanical head movement, so traditional seek time optimization is irrelevant.
+            Instead, focus shifts to wear leveling and write amplification.
+          </li>
+          <li>
+            <strong>Native Command Queuing (NCQ):</strong> Modern hard drives have built-in scheduling that reorders requests for optimal performance.
+          </li>
+          <li>
+            <strong>I/O Schedulers in OS:</strong> Linux offers multiple schedulers (CFQ, Deadline, NOOP) that combine disk scheduling with fairness and deadline guarantees.
+          </li>
+          <li>
+            <strong>RAID Arrays:</strong> Data striping across multiple disks changes the optimization landscape, making parallelism more important than seek time.
+          </li>
+        </ul>
+      </Card>
+
+      <Card className="p-6">
+        <h2 className="text-xl font-semibold mb-3">Summary</h2>
+        <p className="text-text-muted-light dark:text-text-muted-dark leading-relaxed">
+          Disk scheduling is a classic OS optimization problem that balances throughput, fairness, and response time predictability.
+          FCFS is simple and fair but inefficient. SSTF minimizes average seek time but risks starvation. SCAN and C-SCAN provide
+          a middle ground with bounded wait times and no starvation. Use the simulation above to visualize how each algorithm behaves
+          with different request patterns and initial conditions. Understanding these principles helps in choosing appropriate I/O
+          schedulers and storage configurations for modern systems, even as the underlying hardware evolves.
+        </p>
+      </Card>
     </div>
   );
 };
