@@ -21,7 +21,8 @@ export type Page =
   | 'saved-simulations'
   | 'topics'
   | 'docs'
-  | 'progress';
+  | 'progress'
+  | 'about';
 
 export interface Module {
   id: Page;

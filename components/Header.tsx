@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useTheme } from '../hooks/useTheme';
 import { useAuth } from '../hooks/useAuth';
 import type { Page } from '../types';
-import { Sun, Moon, Menu, X, BookOpen, FileText, BarChart3 } from 'lucide-react';
+import { Sun, Moon, Menu, X, BookOpen, FileText, BarChart3, Info } from 'lucide-react';
 import { LogoIcon, MODULES } from '../constants';
 import UserMenu from './UserMenu';
 
@@ -35,6 +35,7 @@ const Header: React.FC<HeaderProps> = ({ setPage, currentPage, openModal, isSimu
     { id: 'topics', label: 'Topics', icon: BookOpen },
     { id: 'docs', label: 'Docs', icon: FileText },
     { id: 'progress', label: 'Progress', icon: BarChart3 },
+    { id: 'about', label: 'About', icon: Info },
   ];
 
   return (
