@@ -3,7 +3,7 @@ import type { SimulatedProcess, ProcessState, ProcessSimulationMode } from '../t
 import Card from '../components/Card';
 import AnimatedNumber from '../components/AnimatedNumber';
 import ProcessPCBModal from '../components/ProcessPCBModal';
-import { Play, Pause, RotateCcw, Plus, SkipForward, Cpu, Workflow } from 'lucide-react';
+import { Play, Pause, RotateCcw, Plus, SkipForward, Cpu, Workflow, Activity, Gauge, TrendingUp, Zap, Clock, BookOpen, CheckCircle } from 'lucide-react';
 
 const colors = [
   '#3b82f6', '#10b981', '#ef4444', '#f97316', '#8b5cf6', '#ec4899',
@@ -243,14 +243,54 @@ const ProcessManagementPage: React.FC = () => {
   }, [state.lifecycle]);
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-3xl font-bold">Process Management</h1>
+    <div className="space-y-6 md:space-y-8">
+      <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-violet-500 via-purple-500 to-fuchsia-600 bg-clip-text text-transparent">Process Management</h1>
+
+      {/* Educational Overview */}
+      <Card className="p-4 sm:p-6 bg-gradient-to-br from-violet-500/5 via-purple-500/5 to-fuchsia-500/5 border-violet-200 dark:border-violet-800">
+        <h2 className="text-xl font-semibold mb-3 flex items-center gap-2">
+          <BookOpen className="text-violet-500" size={24} />
+          What is Process Management?
+        </h2>
+        <p className="text-sm sm:text-base leading-relaxed mb-4">
+          Process management is a core operating system function that handles the <strong>creation, scheduling, and termination</strong> of processes.
+          The OS maintains each process's state (NEW, READY, RUNNING, WAITING, TERMINATED) and uses scheduling algorithms to decide
+          which process runs on the CPU. <strong>Context switching</strong> allows multiple processes to share the CPU by saving and
+          restoring process states. This simulation visualizes the <strong className="text-violet-600 dark:text-violet-400">SRTF (Shortest Remaining Time First)</strong> preemptive scheduling algorithm.
+        </p>
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 text-sm">
+          <div className="p-3 rounded-lg bg-white/50 dark:bg-gray-800/50 border border-border-light dark:border-border-dark">
+            <h3 className="font-semibold text-blue-600 dark:text-blue-400 mb-1">NEW</h3>
+            <p className="text-xs text-text-muted-light dark:text-text-muted-dark">Being created</p>
+          </div>
+          <div className="p-3 rounded-lg bg-white/50 dark:bg-gray-800/50 border border-border-light dark:border-border-dark">
+            <h3 className="font-semibold text-green-600 dark:text-green-400 mb-1">READY</h3>
+            <p className="text-xs text-text-muted-light dark:text-text-muted-dark">Waiting for CPU</p>
+          </div>
+          <div className="p-3 rounded-lg bg-white/50 dark:bg-gray-800/50 border border-border-light dark:border-border-dark">
+            <h3 className="font-semibold text-orange-600 dark:text-orange-400 mb-1">RUNNING</h3>
+            <p className="text-xs text-text-muted-light dark:text-text-muted-dark">Executing</p>
+          </div>
+          <div className="p-3 rounded-lg bg-white/50 dark:bg-gray-800/50 border border-border-light dark:border-border-dark">
+            <h3 className="font-semibold text-yellow-600 dark:text-yellow-400 mb-1">WAITING</h3>
+            <p className="text-xs text-text-muted-light dark:text-text-muted-dark">I/O or event</p>
+          </div>
+          <div className="p-3 rounded-lg bg-white/50 dark:bg-gray-800/50 border border-border-light dark:border-border-dark">
+            <h3 className="font-semibold text-red-600 dark:text-red-400 mb-1">TERMINATED</h3>
+            <p className="text-xs text-text-muted-light dark:text-text-muted-dark">Completed</p>
+          </div>
+        </div>
+      </Card>
+
       <div className="grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-6">
         
         {/* Left Panel: Configuration and Metrics */}
         <aside className="space-y-6">
-          <Card className="p-6">
-            <h2 className="text-lg font-semibold mb-4">Simulation Mode</h2>
+          <Card className="p-4 sm:p-6">
+            <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+              <Activity className="text-violet-500" size={20} />
+              Simulation Mode
+            </h2>
             <div className="flex bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
                 <ModeButton label="Lifecycle" icon={Workflow} active={state.mode === 'LIFECYCLE'} onClick={() => dispatch({type: 'SET_MODE', payload: 'LIFECYCLE'})} />
                 <ModeButton label="Context Switch" icon={Cpu} active={state.mode === 'CONTEXT_SWITCH'} onClick={() => dispatch({type: 'SET_MODE', payload: 'CONTEXT_SWITCH'})} />
@@ -259,8 +299,11 @@ const ProcessManagementPage: React.FC = () => {
 
           {state.mode === 'LIFECYCLE' && (
             <>
-              <Card className="p-6">
-                <h2 className="text-lg font-semibold mb-4">Configuration</h2>
+              <Card className="p-4 sm:p-6">
+                <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                  <Gauge className="text-purple-500" size={20} />
+                  Configuration
+                </h2>
                 <div className="space-y-4">
                   <ConfigInput label="Number of Processes" value={config.numProcesses} onChange={v => setConfig(c => ({...c, numProcesses: v}))} min={1}/>
                   <ConfigInput label="Avg Burst Time (ticks)" value={config.avgBurstTime} onChange={v => setConfig(c => ({...c, avgBurstTime: v}))} min={1}/>
@@ -268,8 +311,11 @@ const ProcessManagementPage: React.FC = () => {
                   <ConfigInput label="Context Switch (ticks)" value={config.contextSwitchTime} onChange={v => setConfig(c => ({...c, contextSwitchTime: v}))} min={0}/>
                 </div>
               </Card>
-              <Card className="p-6">
-                <h2 className="text-lg font-semibold mb-4">Controls</h2>
+              <Card className="p-4 sm:p-6">
+                <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                  <Zap className="text-fuchsia-500" size={20} />
+                  Controls
+                </h2>
                  <div className="grid grid-cols-2 gap-2">
                     <button onClick={() => dispatch({type: state.lifecycle.isSimulationRunning ? 'LIFECYCLE_PAUSE' : 'LIFECYCLE_START'})} className="btn-primary">
                       {state.lifecycle.isSimulationRunning ? <><Pause size={16} /> Pause</> : <><Play size={16} /> Start</>}
@@ -285,22 +331,33 @@ const ProcessManagementPage: React.FC = () => {
                     </button>
                 </div>
               </Card>
-              <Card className="p-6">
-                <h2 className="text-lg font-semibold mb-4">Metrics</h2>
-                <div className="grid grid-cols-2 gap-4 text-center">
-                    <MetricBox label="Time" value={state.lifecycle.time} unit=" ticks" precision={0}/>
-                    <MetricBox label="CPU Utilization" value={calculatedMetrics.cpuUtilization} unit="%" precision={1}/>
-                    <MetricBox label="Avg. Waiting" value={calculatedMetrics.averageWaitingTime} unit=" t" precision={2}/>
-                    <MetricBox label="Avg. Turnaround" value={calculatedMetrics.averageTurnaroundTime} unit=" t" precision={2}/>
-                    <MetricBox label="Context Switches" value={calculatedMetrics.contextSwitches} unit="" precision={0}/>
+              <Card className="p-4 sm:p-6">
+                <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                  <TrendingUp className="text-violet-500" size={20} />
+                  Metrics
+                </h2>
+                <div className="grid grid-cols-2 gap-3 text-center">
+                    <MetricBox label="Time" value={state.lifecycle.time} unit=" ticks" precision={0} color="violet"/>
+                    <MetricBox label="CPU Utilization" value={calculatedMetrics.cpuUtilization} unit="%" precision={1} color="purple"/>
+                    <MetricBox label="Avg. Waiting" value={calculatedMetrics.averageWaitingTime} unit=" t" precision={2} color="fuchsia"/>
+                    <MetricBox label="Avg. Turnaround" value={calculatedMetrics.averageTurnaroundTime} unit=" t" precision={2} color="pink"/>
+                    <MetricBox label="Context Switches" value={calculatedMetrics.contextSwitches} unit="" precision={0} color="indigo"/>
                 </div>
               </Card>
             </>
           )}
            {state.mode === 'CONTEXT_SWITCH' && (
-             <Card className="p-6">
-                 <h2 className="text-lg font-semibold mb-4">Context Switch</h2>
-                 <p className="text-sm text-text-muted-light dark:text-text-muted-dark">This visualization demonstrates the process of a context switch. When the OS decides to run a different process, it must save the state of the current process (like the Program Counter and register values) into its Process Control Block (PCB) and load the state for the new process from its PCB.</p>
+             <Card className="p-4 sm:p-6 bg-gradient-to-br from-violet-500/5 to-purple-500/5 border-violet-200 dark:border-violet-800">
+                 <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                   <Cpu className="text-violet-500" size={20} />
+                   Context Switch
+                 </h2>
+                 <p className="text-sm text-text-muted-light dark:text-text-muted-dark leading-relaxed">
+                   This visualization demonstrates the process of a <strong className="text-violet-600 dark:text-violet-400">context switch</strong>. 
+                   When the OS decides to run a different process, it must <strong>save the state</strong> of the current process 
+                   (like the Program Counter and register values) into its <strong>Process Control Block (PCB)</strong> and 
+                   <strong> load the state</strong> for the new process from its PCB. This overhead is why context switching has a cost.
+                 </p>
              </Card>
            )}
         </aside>
@@ -311,17 +368,54 @@ const ProcessManagementPage: React.FC = () => {
               <>
                 <LifecycleDiagram state={state.lifecycle} onSelectProcess={setSelectedProcess} />
                 <ProcessTable processes={state.lifecycle.processes} onSelectProcess={setSelectedProcess} />
-                <Card className="p-6 animate-fade-in">
-                  <h2 className="text-lg font-semibold mb-3">How It Works: SRTF Scheduling</h2>
-                  <div className="text-text-muted-light dark:text-text-muted-dark text-sm space-y-2">
-                      <p>This simulation visualizes the <strong className="font-semibold text-accent">Shortest Remaining Time First (SRTF)</strong> scheduling algorithm, a preemptive version of Shortest Job First.</p>
-                      <ul className="list-disc list-inside space-y-1 pl-2">
-                        <li>Processes move from <strong>New</strong> to the <strong>Ready</strong> queue upon arrival.</li>
-                        <li>The OS scheduler always selects the process from the Ready queue with the smallest remaining burst time to run on the CPU.</li>
-                        <li>If a new process arrives with a burst time shorter than the currently <strong className="font-semibold text-green-400">running</strong> process's remaining time, the running process is <strong>preempted</strong> (interrupted) and moved back to the Ready queue.</li>
-                        <li>A <strong className="font-semibold text-orange-400">Context Switch</strong> (shown by the pulsing CPU and 'SCHEDULER' animation) introduces a small delay, simulating the overhead of saving and loading process states.</li>
-                        <li>Processes can enter a <strong className="font-semibold text-yellow-400">Waiting</strong> state for I/O, freeing the CPU. They return to the Ready queue when I/O is complete.</li>
+                <Card className="p-4 sm:p-6 animate-fade-in bg-gradient-to-br from-violet-500/5 via-purple-500/5 to-fuchsia-500/5 border-violet-200 dark:border-violet-800">
+                  <h2 className="text-lg sm:text-xl font-semibold mb-3 flex items-center gap-2">
+                    <Zap className="text-violet-500" size={22} />
+                    How It Works: SRTF Scheduling
+                  </h2>
+                  <div className="text-text-muted-light dark:text-text-muted-dark text-sm sm:text-base space-y-3">
+                      <p>This simulation visualizes the <strong className="font-semibold bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent">Shortest Remaining Time First (SRTF)</strong> scheduling algorithm, a preemptive version of Shortest Job First.</p>
+                      <ul className="list-disc list-inside space-y-2 pl-2">
+                        <li>Processes move from <strong className="text-blue-600 dark:text-blue-400">New</strong> to the <strong className="text-green-600 dark:text-green-400">Ready</strong> queue upon arrival.</li>
+                        <li>The OS scheduler always selects the process from the Ready queue with the <strong>smallest remaining burst time</strong> to run on the CPU.</li>
+                        <li>If a new process arrives with a burst time shorter than the currently <strong className="font-semibold text-orange-600 dark:text-orange-400">running</strong> process's remaining time, the running process is <strong className="text-violet-600 dark:text-violet-400">preempted</strong> (interrupted) and moved back to the Ready queue.</li>
+                        <li>A <strong className="font-semibold text-purple-600 dark:text-purple-400">Context Switch</strong> (shown by the pulsing CPU and 'SWITCHING' animation) introduces a small delay, simulating the overhead of saving and loading process states.</li>
+                        <li>Processes can enter a <strong className="font-semibold text-yellow-600 dark:text-yellow-400">Waiting</strong> state for I/O, freeing the CPU. They return to the Ready queue when I/O is complete.</li>
                       </ul>
+                  </div>
+                </Card>
+
+                {/* Algorithm Benefits */}
+                <Card className="p-4 sm:p-6 bg-gradient-to-br from-purple-500/5 to-fuchsia-500/5 border-purple-200 dark:border-purple-800">
+                  <h2 className="text-lg sm:text-xl font-semibold mb-4 flex items-center gap-2">
+                    <CheckCircle className="text-purple-500" size={22} />
+                    SRTF Algorithm Benefits & Tradeoffs
+                  </h2>
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <div className="p-4 rounded-lg bg-gradient-to-br from-green-500/10 to-emerald-500/10 border border-green-300 dark:border-green-700">
+                      <h3 className="font-semibold text-green-700 dark:text-green-400 mb-2 flex items-center gap-2">
+                        <CheckCircle size={16} />
+                        Advantages
+                      </h3>
+                      <ul className="text-sm space-y-1 text-text-muted-light dark:text-text-muted-dark list-disc list-inside">
+                        <li>Minimizes average waiting time</li>
+                        <li>Optimal for minimizing turnaround time</li>
+                        <li>Responsive to short processes</li>
+                        <li>Efficient CPU utilization</li>
+                      </ul>
+                    </div>
+                    <div className="p-4 rounded-lg bg-gradient-to-br from-red-500/10 to-orange-500/10 border border-red-300 dark:border-red-700">
+                      <h3 className="font-semibold text-red-700 dark:text-red-400 mb-2 flex items-center gap-2">
+                        <Clock size={16} />
+                        Challenges
+                      </h3>
+                      <ul className="text-sm space-y-1 text-text-muted-light dark:text-text-muted-dark list-disc list-inside">
+                        <li>Can cause <strong>starvation</strong> for long processes</li>
+                        <li>Requires knowing remaining burst time</li>
+                        <li>High context switching overhead</li>
+                        <li>Not practical for real-time systems</li>
+                      </ul>
+                    </div>
                   </div>
                 </Card>
               </>
@@ -333,9 +427,9 @@ const ProcessManagementPage: React.FC = () => {
       {selectedProcess && <ProcessPCBModal process={selectedProcess} onClose={() => setSelectedProcess(null)} />}
 
       <style>{`
-        .btn-primary { @apply flex items-center justify-center gap-2 px-4 py-2 bg-accent text-white font-semibold rounded-lg shadow-md hover:bg-accent-hover transition-colors; }
-        .btn-secondary { @apply flex items-center justify-center gap-2 px-4 py-2 bg-gray-200 dark:bg-gray-700 font-semibold rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors; }
-        .btn-success { @apply flex items-center justify-center gap-2 px-4 py-2 bg-green-500 text-white font-semibold rounded-lg shadow-md hover:bg-green-600 transition-colors; }
+        .btn-primary { @apply flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-r from-violet-500 to-purple-600 text-white font-semibold rounded-lg shadow-md hover:from-violet-600 hover:to-purple-700 transition-all duration-300; }
+        .btn-secondary { @apply flex items-center justify-center gap-2 px-4 py-2 bg-gray-200 dark:bg-gray-700 font-semibold rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-all duration-300; }
+        .btn-success { @apply flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-semibold rounded-lg shadow-md hover:from-green-600 hover:to-emerald-700 transition-all duration-300; }
         .transition-arrow {
             stroke: #d1d5db; /* gray-300 */
             transition: all 0.2s ease-in-out;
@@ -411,9 +505,14 @@ const LifecycleDiagram: React.FC<{state: State['lifecycle'], onSelectProcess: (p
     const isSwitching = state.contextSwitchCountdown > 0;
 
     return (
-        <Card className="p-4 relative w-full h-[520px] bg-slate-800/60 shadow rounded-lg">
-            <h2 className="text-lg font-semibold">Process State Diagram</h2>
-            <div className="absolute top-4 right-4 text-lg font-mono bg-gray-100 dark:bg-gray-800 px-3 py-1 rounded-lg z-20"> Time: {state.time} </div>
+        <Card className="p-4 relative w-full h-[520px] bg-gradient-to-br from-violet-500/5 to-purple-500/5 border-violet-200 dark:border-violet-800 shadow-lg rounded-lg">
+            <h2 className="text-lg font-semibold flex items-center gap-2">
+              <div className="w-3 h-3 rounded-full bg-gradient-to-r from-violet-500 to-purple-500 animate-pulse"></div>
+              Process State Diagram
+            </h2>
+            <div className="absolute top-4 right-4 text-lg font-mono bg-gradient-to-br from-violet-500/20 to-purple-500/20 border border-violet-400 dark:border-violet-600 text-violet-700 dark:text-violet-300 px-3 py-1 rounded-lg z-20 font-semibold"> 
+              Time: {state.time} 
+            </div>
 
             <div className="absolute inset-0 pt-12 flex items-center justify-center">
               <div className="relative w-full h-full">
@@ -426,13 +525,13 @@ const LifecycleDiagram: React.FC<{state: State['lifecycle'], onSelectProcess: (p
                 <div 
                     className={`absolute -translate-x-1/2 -translate-y-1/2 w-[18%] h-[20%] border-2 border-dashed rounded-2xl transition-all duration-300 flex items-center justify-center ${
                         isSwitching 
-                            ? 'border-accent shadow-lg shadow-accent/50 animate-pulse' 
+                            ? 'border-violet-500 shadow-lg shadow-violet-500/50 animate-pulse bg-gradient-to-br from-violet-500/10 to-purple-500/10' 
                             : 'border-blue-500/30'
                     }`} 
                     style={statePositions['RUNNING'] as any}
                 >
                     {isSwitching && (
-                        <div className="text-accent font-bold text-xs uppercase tracking-wider">
+                        <div className="bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent font-bold text-xs uppercase tracking-wider animate-pulse">
                             Switching
                         </div>
                     )}
@@ -526,8 +625,11 @@ const LifecycleDiagram: React.FC<{state: State['lifecycle'], onSelectProcess: (p
 
 const ProcessTable: React.FC<{processes: SimulatedProcess[], onSelectProcess: (p: SimulatedProcess) => void}> = ({ processes, onSelectProcess }) => {
     return (
-        <Card className="p-4 w-full bg-slate-800/60 shadow rounded-lg">
-            <h2 className="text-lg font-semibold mb-4">Process Table</h2>
+        <Card className="p-4 w-full bg-gradient-to-br from-purple-500/5 to-fuchsia-500/5 border-purple-200 dark:border-purple-800 shadow-lg rounded-lg">
+            <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+              <Activity className="text-purple-500" size={20} />
+              Process Table
+            </h2>
             <div className="max-h-[calc(100vh-12rem)] overflow-y-auto">
               <table className="w-full text-sm text-left">
                 <thead className="sticky top-0 bg-card-light dark:bg-card-dark z-10">
@@ -570,17 +672,22 @@ const ContextSwitchView = () => {
     };
 
     return (
-        <Card className="p-6">
-          <h2 className="text-lg font-semibold mb-4">Context Switch Visualization</h2>
-          <div className="flex flex-col items-center gap-8">
-            <div className="flex justify-around w-full">
+        <Card className="p-4 sm:p-6 bg-gradient-to-br from-violet-500/5 to-purple-500/5 border-violet-200 dark:border-violet-800">
+          <h2 className="text-lg sm:text-xl font-semibold mb-6 flex items-center gap-2">
+            <Cpu className="text-violet-500" size={22} />
+            Context Switch Visualization
+          </h2>
+          <div className="flex flex-col items-center gap-6 sm:gap-8">
+            <div className="flex flex-col sm:flex-row justify-around w-full gap-4 sm:gap-0">
                 <PCB pcbId={1} data={p1} isActive={activePcb === 1} isSaving={isSwitching && activePcb === 1} isLoading={isSwitching && activePcb === 2} />
                 <PCB pcbId={2} data={p2} isActive={activePcb === 2} isSaving={isSwitching && activePcb === 2} isLoading={isSwitching && activePcb === 1} />
             </div>
-            <div className={`text-accent transition-transform duration-500 ${isSwitching ? 'scale-y-0' : 'scale-y-100'}`} >▼ Save State / Load State ▲</div>
+            <div className={`bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent font-semibold transition-transform duration-500 ${isSwitching ? 'scale-y-0' : 'scale-y-100'}`}>
+              ▼ Save State / Load State ▲
+            </div>
             <CPUDisplay data={cpu} isSwitching={isSwitching} />
-            <button onClick={handleSwitch} disabled={isSwitching} className="btn-primary disabled:opacity-50">
-                {isSwitching ? 'Switching...' : `Switch to P${activePcb === 1 ? 2 : 1}`}
+            <button onClick={handleSwitch} disabled={isSwitching} className="btn-primary disabled:opacity-50 shadow-lg hover:shadow-xl">
+                {isSwitching ? '⚡ Switching...' : `Switch to P${activePcb === 1 ? 2 : 1}`}
             </button>
           </div>
         </Card>
@@ -590,7 +697,7 @@ const ContextSwitchView = () => {
 // --- UI HELPER COMPONENTS ---
 
 const ModeButton: React.FC<{label: string, icon: React.ElementType, active: boolean, onClick: () => void}> = ({label, icon: Icon, active, onClick}) => (
-    <button onClick={onClick} className={`flex-1 flex items-center justify-center gap-2 text-sm font-semibold p-2 rounded-md transition-colors ${active ? 'bg-white dark:bg-gray-900/80 text-accent shadow-sm' : 'text-text-muted-light dark:text-text-muted-dark'}`}>
+    <button onClick={onClick} className={`flex-1 flex items-center justify-center gap-2 text-sm font-semibold p-2 rounded-md transition-all duration-300 ${active ? 'bg-gradient-to-r from-violet-500 to-purple-600 text-white shadow-md scale-105' : 'text-text-muted-light dark:text-text-muted-dark hover:bg-gray-200 dark:hover:bg-gray-700'}`}>
         <Icon size={16} /> <span className="hidden md:inline">{label}</span>
     </button>
 );
@@ -598,41 +705,85 @@ const ModeButton: React.FC<{label: string, icon: React.ElementType, active: bool
 const ConfigInput: React.FC<{label: string, value: number, onChange: (val: number) => void, min: number}> = ({label, value, onChange, min}) => (
     <div>
         <label className="text-sm font-medium text-text-muted-light dark:text-text-muted-dark">{label}</label>
-        <input type="number" value={value} onChange={e => onChange(Number(e.target.value))} min={min} className="w-full p-2 mt-1 border border-border-light dark:border-border-dark rounded-lg bg-bkg-light dark:bg-bkg-dark focus:ring-2 focus:ring-accent focus:outline-none" />
+        <input type="number" value={value} onChange={e => onChange(Number(e.target.value))} min={min} className="w-full p-2 mt-1 border border-border-light dark:border-border-dark rounded-lg bg-bkg-light dark:bg-bkg-dark focus:ring-2 focus:ring-violet-500 focus:outline-none transition-all duration-300" />
     </div>
 );
 
-const MetricBox: React.FC<{label: string, value: number, unit: string, precision: number}> = ({label, value, unit, precision}) => (
-    <div className="p-2 bg-gray-50 dark:bg-gray-800 rounded-lg">
-        <p className="text-xs text-text-muted-light dark:text-text-muted-dark">{label}</p>
-        <div className="text-xl font-bold">
-            <AnimatedNumber value={value} precision={precision} />
-            <span className="text-base font-medium">{unit}</span>
+const MetricBox: React.FC<{label: string, value: number, unit: string, precision: number, color: string}> = ({label, value, unit, precision, color}) => {
+    const gradientMap: Record<string, string> = {
+        violet: 'from-violet-500/20 to-purple-500/20 border-violet-400 dark:border-violet-600 text-violet-700 dark:text-violet-300',
+        purple: 'from-purple-500/20 to-fuchsia-500/20 border-purple-400 dark:border-purple-600 text-purple-700 dark:text-purple-300',
+        fuchsia: 'from-fuchsia-500/20 to-pink-500/20 border-fuchsia-400 dark:border-fuchsia-600 text-fuchsia-700 dark:text-fuchsia-300',
+        pink: 'from-pink-500/20 to-rose-500/20 border-pink-400 dark:border-pink-600 text-pink-700 dark:text-pink-300',
+        indigo: 'from-indigo-500/20 to-violet-500/20 border-indigo-400 dark:border-indigo-600 text-indigo-700 dark:text-indigo-300',
+    };
+    
+    return (
+        <div className={`p-3 bg-gradient-to-br ${gradientMap[color]} border rounded-lg transition-all duration-300 hover:scale-105`}>
+            <p className="text-xs font-medium mb-1">{label}</p>
+            <div className="text-lg sm:text-xl font-bold">
+                <AnimatedNumber value={value} precision={precision} />
+                <span className="text-sm font-medium">{unit}</span>
+            </div>
         </div>
-    </div>
-);
+    );
+};
 
 const PCB: React.FC<{pcbId: number, data: any, isActive: boolean, isSaving: boolean, isLoading: boolean}> = ({pcbId, data, isActive, isSaving, isLoading}) => (
-    <div className={`p-4 border-2 rounded-lg w-48 transition-all duration-500 ${isActive ? 'border-accent shadow-lg' : 'border-border-light dark:border-border-dark'}`}>
-        <h3 className="font-bold text-center">PCB: P{pcbId}</h3>
-        <div className="mt-2 space-y-1 text-sm font-mono">
-            <p>PC: <span className={isSaving ? 'animate-pulse' : ''}>{data.pc}</span></p>
-            <p>R1: <span className={isSaving ? 'animate-pulse' : ''}>{data.r1}</span></p>
-            <p>R2: <span className={isSaving ? 'animate-pulse' : ''}>{data.r2}</span></p>
+    <div className={`p-4 sm:p-5 border-2 rounded-lg w-full sm:w-48 transition-all duration-500 ${
+        isActive 
+            ? 'border-violet-500 shadow-lg shadow-violet-500/30 bg-gradient-to-br from-violet-500/10 to-purple-500/10' 
+            : 'border-border-light dark:border-border-dark bg-white/50 dark:bg-gray-800/50'
+    }`}>
+        <h3 className="font-bold text-center text-base sm:text-lg mb-2 bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent">
+          PCB: P{pcbId}
+        </h3>
+        <div className="mt-3 space-y-2 text-sm font-mono">
+            <p className="flex justify-between">
+              <span className="text-text-muted-light dark:text-text-muted-dark">PC:</span> 
+              <span className={`font-semibold ${isSaving ? 'animate-pulse text-violet-600 dark:text-violet-400' : ''}`}>{data.pc}</span>
+            </p>
+            <p className="flex justify-between">
+              <span className="text-text-muted-light dark:text-text-muted-dark">R1:</span> 
+              <span className={`font-semibold ${isSaving ? 'animate-pulse text-violet-600 dark:text-violet-400' : ''}`}>{data.r1}</span>
+            </p>
+            <p className="flex justify-between">
+              <span className="text-text-muted-light dark:text-text-muted-dark">R2:</span> 
+              <span className={`font-semibold ${isSaving ? 'animate-pulse text-violet-600 dark:text-violet-400' : ''}`}>{data.r2}</span>
+            </p>
         </div>
-        {isLoading && <div className="text-xs text-center mt-2 text-accent animate-pulse">Loading...</div>}
+        {isLoading && <div className="text-xs text-center mt-3 bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent font-semibold animate-pulse">Loading...</div>}
     </div>
 );
 
 const CPUDisplay: React.FC<{data: any, isSwitching: boolean}> = ({data, isSwitching}) => (
-    <div className="p-6 border-4 border-accent rounded-lg bg-accent/10 w-64 text-center relative">
-        <h3 className="font-bold text-xl mb-2 flex items-center justify-center gap-2"><Cpu size={24}/> CPU</h3>
-        <div className="space-y-2 font-mono">
-            <p>PC: <span>{data.pc}</span></p>
-            <p>R1: <span>{data.r1}</span></p>
-            <p>R2: <span>{data.r2}</span></p>
+    <div className="p-6 border-4 border-violet-500 rounded-lg bg-gradient-to-br from-violet-500/20 to-purple-500/20 w-full sm:w-72 text-center relative shadow-lg transition-all duration-300">
+        <h3 className="font-bold text-xl mb-4 flex items-center justify-center gap-2 bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent">
+          <Cpu size={24} className="text-violet-500"/> CPU
+        </h3>
+        <div className="space-y-3 font-mono text-base">
+            <p className="flex justify-between px-4">
+              <span className="text-text-muted-light dark:text-text-muted-dark">PC:</span> 
+              <span className="font-semibold">{data.pc}</span>
+            </p>
+            <p className="flex justify-between px-4">
+              <span className="text-text-muted-light dark:text-text-muted-dark">R1:</span> 
+              <span className="font-semibold">{data.r1}</span>
+            </p>
+            <p className="flex justify-between px-4">
+              <span className="text-text-muted-light dark:text-text-muted-dark">R2:</span> 
+              <span className="font-semibold">{data.r2}</span>
+            </p>
         </div>
-        {isSwitching && <div className="absolute inset-0 bg-bkg-light/80 dark:bg-bkg-dark/80 flex items-center justify-center font-semibold text-accent animate-pulse">SCHEDULER</div>}
+        {isSwitching && (
+          <div className="absolute inset-0 bg-gradient-to-br from-violet-500/95 to-purple-500/95 rounded-lg flex items-center justify-center">
+            <div className="text-white font-bold text-lg uppercase tracking-wider animate-pulse flex items-center gap-2">
+              <Zap size={20} className="animate-bounce" />
+              SCHEDULER
+              <Zap size={20} className="animate-bounce" />
+            </div>
+          </div>
+        )}
     </div>
 );
 
