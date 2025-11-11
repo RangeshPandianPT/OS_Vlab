@@ -5,8 +5,11 @@ import AlgorithmSelector from '../components/AlgorithmSelector';
 import SimulationControls from '../components/SimulationControls';
 import SimulationResults from '../components/SimulationResults';
 import ConfirmationModal from '../components/ConfirmationModal';
+import SimulationHistoryModal from '../components/SimulationHistoryModal';
 import Card from '../components/Card';
-import { Clock, Cpu, Zap, BookOpen, TrendingUp, CheckCircle, AlertCircle, Info } from 'lucide-react';
+import { Clock, Cpu, Zap, BookOpen, TrendingUp, CheckCircle, AlertCircle, Info, Download, History, FileDown, FileText } from 'lucide-react';
+import { useSimulationHistory, SimulationHistoryEntry } from '../hooks/useSimulationHistory';
+import { exportAsJSON, exportAsCSV, exportGanttAsText, getFormattedDate, generateDetailedReport, exportAsPDF } from '../utils/exportUtils';
 
 const defaultProcesses: Process[] = [
   { id: 1, name: 'P1', arrivalTime: 0, burstTime: 8, priority: 2 },
@@ -78,14 +81,61 @@ const CpuSchedulingPage: React.FC = () => {
     const [timeQuantum, setTimeQuantum] = useState(4);
     const [simulationResult, setSimulationResult] = useState<SimulationResult | null>(null);
     const [isResetModalOpen, setResetModalOpen] = useState(false);
+    const [isHistoryModalOpen, setHistoryModalOpen] = useState(false);
+    const [showExportMenu, setShowExportMenu] = useState(false);
+    
+    const { addToHistory } = useSimulationHistory();
 
     const handleRunSimulation = () => {
         // A more robust solution would have different logic for each algorithm
         const result = runSimulationLogic(processes, algorithm, timeQuantum);
         setSimulationResult(result);
+        
+        // Save to history
+        addToHistory({
+            simulationType: 'cpu-scheduling',
+            algorithm,
+            processes: JSON.parse(JSON.stringify(processes)),
+            result,
+            timeQuantum: algorithm === 'RR' ? timeQuantum : undefined
+        });
     };
 
-    const handleReset = () => {
+    const handleReplay = (entry: SimulationHistoryEntry) => {
+        setAlgorithm(entry.algorithm as SchedulingAlgorithm);
+        setProcesses(JSON.parse(JSON.stringify(entry.processes)));
+        setSimulationResult(entry.result);
+        if (entry.timeQuantum) {
+            setTimeQuantum(entry.timeQuantum);
+        }
+    };
+
+  const handleExport = (format: 'json' | 'csv' | 'text' | 'pdf') => {
+    if (!simulationResult) return;
+
+    const timestamp = new Date().toISOString().split('T')[0];
+    const filename = `cpu-scheduling-${algorithm.toLowerCase()}-${timestamp}`;
+
+    switch (format) {
+      case 'json':
+        exportAsJSON(
+          generateDetailedReport(algorithm, processes, simulationResult, timeQuantum),
+          filename
+        );
+        break;
+      case 'csv':
+        exportAsCSV(simulationResult, filename);
+        break;
+      case 'text':
+        exportGanttAsText(simulationResult, filename);
+        break;
+      case 'pdf':
+        exportAsPDF(algorithm, processes, simulationResult, timeQuantum);
+        break;
+    }
+
+    setShowExportMenu(false);
+  };    const handleReset = () => {
         setProcesses(defaultProcesses);
         setSimulationResult(null);
         setResetModalOpen(false);
@@ -172,6 +222,62 @@ const CpuSchedulingPage: React.FC = () => {
                 algorithm={algorithm}
             />
 
+            {/* Export and History Actions */}
+            <div className="flex flex-wrap gap-3 justify-end">
+                <button
+                    onClick={() => setHistoryModalOpen(true)}
+                    className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-semibold rounded-lg hover:from-purple-600 hover:to-indigo-700 transition-all duration-300 shadow-md hover:shadow-lg hover:scale-105"
+                >
+                    <History size={18} />
+                    <span className="hidden sm:inline">History</span>
+                </button>
+
+                {simulationResult && (
+                    <div className="relative">
+                        <button
+                            onClick={() => setShowExportMenu(!showExportMenu)}
+                            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-semibold rounded-lg hover:from-green-600 hover:to-emerald-700 transition-all duration-300 shadow-md hover:shadow-lg hover:scale-105"
+                        >
+                            <Download size={18} />
+                            <span className="hidden sm:inline">Export</span>
+                        </button>
+
+                        {showExportMenu && (
+                            <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-border-light dark:border-border-dark z-10">
+                                <button
+                                    onClick={() => handleExport('json')}
+                                    className="w-full flex items-center gap-2 px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-left rounded-t-lg transition-colors"
+                                >
+                                    <FileDown size={16} />
+                                    <span className="text-sm">Export as JSON</span>
+                                </button>
+                                <button
+                                    onClick={() => handleExport('csv')}
+                                    className="w-full flex items-center gap-2 px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-left transition-colors"
+                                >
+                                    <FileText size={16} />
+                                    <span className="text-sm">Export as CSV</span>
+                                </button>
+                                <button
+                                    onClick={() => handleExport('text')}
+                                    className="w-full flex items-center gap-2 px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-left transition-colors"
+                                >
+                                    <FileText size={16} />
+                                    <span className="text-sm">Export as Text</span>
+                                </button>
+                                <button
+                                    onClick={() => handleExport('pdf')}
+                                    className="w-full flex items-center gap-2 px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-left rounded-b-lg transition-colors"
+                                >
+                                    <FileDown size={16} />
+                                    <span className="text-sm">Export as PDF</span>
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                )}
+            </div>
+
             {/* A live visualization component could be placed here */}
 
             {simulationResult && <SimulationResults result={simulationResult} />}
@@ -183,6 +289,13 @@ const CpuSchedulingPage: React.FC = () => {
                 title="Reset Simulation"
                 message="Are you sure you want to reset all processes to their default values?"
                 confirmText="Reset"
+            />
+            
+            <SimulationHistoryModal
+                isOpen={isHistoryModalOpen}
+                onClose={() => setHistoryModalOpen(false)}
+                onReplay={handleReplay}
+                simulationType="cpu-scheduling"
             />
         </div>
     );

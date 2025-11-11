@@ -1,8 +1,11 @@
 import React, { useState, useReducer, useEffect, useRef, useMemo, useCallback } from 'react';
 import type { SyncSimulationMode, SyncThread, ThreadState, SyncMetrics, LogEntry } from '../types';
 import Card from '../components/Card';
-import { Play, Pause, RotateCcw, SkipForward, ChevronDown, ChevronUp, Lock, Users, Coffee, Scissors, BookOpen, Key, GitCommit, GitMerge, AlertTriangle, Activity, Gauge, TrendingUp, Zap, CheckCircle } from 'lucide-react';
+import SimulationHistoryModal from '../components/SimulationHistoryModal';
+import { Play, Pause, RotateCcw, SkipForward, ChevronDown, ChevronUp, Lock, Users, Coffee, Scissors, BookOpen, Key, GitCommit, GitMerge, AlertTriangle, Activity, Gauge, TrendingUp, Zap, CheckCircle, Download, History, FileDown } from 'lucide-react';
 import AnimatedNumber from '../components/AnimatedNumber';
+import { useSimulationHistory, SimulationHistoryEntry } from '../hooks/useSimulationHistory';
+import { exportAsJSON } from '../utils/exportUtils';
 
 // --- CONSTANTS & CONFIGS ---
 const THREAD_COLORS = ['#3b82f6', '#10b981', '#ef4444', '#f97316', '#8b5cf6', '#ec4899', '#6366f1', '#f59e0b'];
@@ -349,6 +352,10 @@ const ThreadsAndSyncPage: React.FC = () => {
   const timerRef = useRef<number | null>(null);
   const [isEduOpen, setIsEduOpen] = useState(true);
 
+  // Export and History state
+  const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
+  const { addToHistory } = useSimulationHistory();
+
   const startSimulation = useCallback(() => {
     if (timerRef.current) clearInterval(timerRef.current);
     timerRef.current = window.setInterval(() => {
@@ -368,6 +375,69 @@ const ThreadsAndSyncPage: React.FC = () => {
   const handleUpdateConfig = (key: string, value: any) => {
     dispatch({type: 'UPDATE_CONFIG', payload: {key, value}});
   }
+
+  const handleSaveState = () => {
+    const stateData = {
+      timestamp: new Date().toISOString(),
+      mode: state.mode,
+      config: state.config,
+      threads: state.threads,
+      metrics: state.metrics
+    };
+
+    addToHistory({
+      simulationType: 'threads-sync',
+      algorithm: state.mode,
+      processes: state.threads.map(t => ({
+        id: t.id,
+        name: t.name,
+        arrivalTime: 0,
+        burstTime: 0,
+        priority: 0
+      })),
+      result: {
+        ganttChart: [],
+        processMetrics: state.threads.map(t => ({
+          id: t.id,
+          name: t.name,
+          arrivalTime: 0,
+          burstTime: 0,
+          completionTime: 0,
+          turnaroundTime: 0,
+          waitingTime: 0,
+          priority: 0
+        })),
+        metrics: {
+          averageWaitingTime: state.metrics.totalWaitTime / state.threads.length,
+          averageTurnaroundTime: 0,
+          cpuUtilization: 100
+        },
+        totalDuration: state.ticks
+      },
+      name: `${state.mode} - ${state.threads.length} threads`
+    });
+  };
+
+  const handleExport = () => {
+    const timestamp = new Date().toISOString().split('T')[0];
+    const filename = `threads-sync-${state.mode.toLowerCase()}-${timestamp}`;
+
+    const exportData = {
+      timestamp: new Date().toISOString(),
+      mode: state.mode,
+      config: state.config,
+      threads: state.threads,
+      metrics: state.metrics,
+      ticks: state.ticks,
+      log: state.log
+    };
+
+    exportAsJSON(exportData, filename);
+  };
+
+  const handleReplay = (entry: SimulationHistoryEntry) => {
+    setIsHistoryModalOpen(false);
+  };
 
   const educationalContent = useMemo(() => {
     switch (state.mode) {
@@ -535,6 +605,30 @@ const ThreadsAndSyncPage: React.FC = () => {
                 </button>
               </div>
             )}
+
+            {/* Export & History */}
+            {state.threads.length > 0 && (
+              <div className="p-3 rounded-lg bg-gradient-to-br from-green-500/5 to-emerald-600/5 border border-green-300 dark:border-green-700">
+                <h3 className="text-xs font-semibold text-green-600 dark:text-green-400 mb-2 flex items-center gap-1">
+                  <Download size={14} />
+                  Export & History
+                </h3>
+                <div className="grid grid-cols-3 gap-2">
+                  <button onClick={() => setIsHistoryModalOpen(true)} className="w-full flex items-center justify-center gap-1 px-2 py-2 bg-gradient-to-r from-purple-500 to-violet-600 text-white font-semibold rounded-lg hover:from-purple-600 hover:to-violet-700 transition-all duration-300 shadow-md hover:shadow-lg text-xs">
+                    <History size={14} />
+                    <span>History</span>
+                  </button>
+                  <button onClick={handleExport} className="w-full flex items-center justify-center gap-1 px-2 py-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-semibold rounded-lg hover:from-green-600 hover:to-emerald-700 transition-all duration-300 shadow-md hover:shadow-lg text-xs">
+                    <Download size={14} />
+                    <span>Export</span>
+                  </button>
+                  <button onClick={handleSaveState} className="w-full flex items-center justify-center gap-1 px-2 py-2 bg-gradient-to-r from-blue-500 to-cyan-600 text-white font-semibold rounded-lg hover:from-blue-600 hover:to-cyan-700 transition-all duration-300 shadow-md hover:shadow-lg text-xs">
+                    <FileDown size={14} />
+                    <span>Save</span>
+                  </button>
+                </div>
+              </div>
+            )}
           </Card>
           <MetricsPanel state={state}/>
           <LogPanel log={state.log}/>
@@ -568,6 +662,15 @@ const ThreadsAndSyncPage: React.FC = () => {
             </div>
           )}
        </Card>
+
+      {/* Simulation History Modal */}
+      <SimulationHistoryModal
+        isOpen={isHistoryModalOpen}
+        onClose={() => setIsHistoryModalOpen(false)}
+        onReplay={handleReplay}
+        simulationType="threads-sync"
+      />
+
       <style>{`
         .btn-primary { @apply flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-r from-teal-500 to-cyan-600 text-white font-semibold rounded-lg shadow-md hover:from-teal-600 hover:to-cyan-700 transition-all duration-300; }
         .btn-secondary { @apply flex items-center justify-center gap-2 px-4 py-2 bg-gray-200 dark:bg-gray-700 font-semibold rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-all duration-300; }
@@ -811,4 +914,6 @@ const VisualizationPanel: React.FC<{state: SimState}> = ({state}) => {
         default: return <p>Visualization not available for this mode.</p>;
     }
 }
+
 export default ThreadsAndSyncPage;
+

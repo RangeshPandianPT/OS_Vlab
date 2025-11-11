@@ -2,7 +2,10 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import type { DeadlockProcessNode, DeadlockResourceNode, Allocation, Request, BankerState, LogEntry, BankerResult, BankerStep } from '../types';
 import Card from '../components/Card';
 import Modal from '../components/Modal';
-import { Plus, Trash2, Link, Unlink, ShieldCheck, RotateCcw, AlertTriangle, Info, CheckCircle, XCircle, Zap } from 'lucide-react';
+import SimulationHistoryModal from '../components/SimulationHistoryModal';
+import { Plus, Trash2, Link, Unlink, ShieldCheck, RotateCcw, AlertTriangle, Info, CheckCircle, XCircle, Zap, Download, History, FileDown, FileText } from 'lucide-react';
+import { useSimulationHistory, SimulationHistoryEntry } from '../hooks/useSimulationHistory';
+import { exportAsJSON } from '../utils/exportUtils';
 
 const RAG_WIDTH = 800;
 const RAG_HEIGHT = 500;
@@ -511,6 +514,11 @@ const DeadlockPage: React.FC = () => {
   const [bankerState, setBankerState] = useState<BankerState | null>(null);
   const [bankerResult, setBankerResult] = useState<BankerResult | null>(null);
 
+  // Export and History state
+  const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
+  const [showExportMenu, setShowExportMenu] = useState(false);
+  const { addToHistory } = useSimulationHistory();
+
   const addLog = useCallback((message: string, type: LogEntry['type']) => {
       setLog(prev => [{ id: Date.now(), message, type, timestamp: new Date().toLocaleTimeString() }, ...prev].slice(0, 100));
   }, []);
@@ -577,6 +585,79 @@ const DeadlockPage: React.FC = () => {
     setBankerState(null);
     setBankerResult(null);
     addLog('Simulation reset.', 'info');
+  };
+
+  const handleSaveState = () => {
+    const stateData = {
+      timestamp: new Date().toISOString(),
+      processes,
+      resources,
+      allocations,
+      requests,
+      deadlockedInfo,
+      bankerState
+    };
+
+    addToHistory({
+      simulationType: 'deadlock',
+      algorithm: deadlockedInfo.cycles.length > 0 ? 'Deadlock Detected' : 'Safe State',
+      processes: processes.map(p => ({
+        id: p.id,
+        name: p.name,
+        arrivalTime: 0,
+        burstTime: 0,
+        priority: 0
+      })),
+      result: {
+        ganttChart: [],
+        processMetrics: processes.map(p => ({
+          id: p.id,
+          name: p.name,
+          arrivalTime: 0,
+          burstTime: 0,
+          completionTime: 0,
+          turnaroundTime: 0,
+          waitingTime: 0,
+          priority: 0
+        })),
+        metrics: {
+          averageWaitingTime: 0,
+          averageTurnaroundTime: 0,
+          cpuUtilization: deadlockedInfo.cycles.length === 0 ? 100 : 0
+        },
+        totalDuration: 0
+      },
+      name: `Deadlock - ${processes.length}P, ${resources.length}R`
+    });
+    
+    addLog('State saved to history.', 'success');
+  };
+
+  const handleExport = () => {
+    const timestamp = new Date().toISOString().split('T')[0];
+    const filename = `deadlock-state-${timestamp}`;
+
+    const exportData = {
+      timestamp: new Date().toISOString(),
+      processes,
+      resources,
+      allocations,
+      requests,
+      deadlockedInfo: {
+        hasCycles: deadlockedInfo.cycles.length > 0,
+        cycleCount: deadlockedInfo.cycles.length
+      },
+      bankerState
+    };
+
+    exportAsJSON(exportData, filename);
+    setShowExportMenu(false);
+    addLog('State exported as JSON.', 'success');
+  };
+
+  const handleReplay = (entry: SimulationHistoryEntry) => {
+    setIsHistoryModalOpen(false);
+    addLog('History replay loaded.', 'info');
   };
 
   const handleAddProcess = () => {
@@ -767,11 +848,37 @@ const DeadlockPage: React.FC = () => {
                      <RotateCcw size={14} />
                      System Control
                    </h3>
-                   <button onClick={resetSimulation} className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-gradient-to-r from-gray-600 to-gray-700 text-white font-semibold rounded-lg hover:from-gray-700 hover:to-gray-800 transition-all duration-300 shadow-md hover:shadow-lg hover:scale-105">
-                     <RotateCcw size={16} />
-                     <span>Reset Simulation</span>
-                   </button>
+                   <div className="grid grid-cols-2 gap-2">
+                     <button onClick={resetSimulation} className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-gradient-to-r from-gray-600 to-gray-700 text-white font-semibold rounded-lg hover:from-gray-700 hover:to-gray-800 transition-all duration-300 shadow-md hover:shadow-lg hover:scale-105">
+                       <RotateCcw size={16} />
+                       <span>Reset</span>
+                     </button>
+                     <button onClick={handleSaveState} className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-gradient-to-r from-blue-600 to-cyan-700 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-cyan-800 transition-all duration-300 shadow-md hover:shadow-lg hover:scale-105">
+                       <FileDown size={16} />
+                       <span>Save</span>
+                     </button>
+                   </div>
                  </div>
+
+                 {/* Export & History */}
+                 {(processes.length > 0 || resources.length > 0) && (
+                   <div className="mb-4 p-3 rounded-lg bg-gradient-to-br from-green-500/5 to-emerald-600/5 border border-green-300 dark:border-green-700">
+                     <h3 className="text-xs font-semibold text-green-600 dark:text-green-400 mb-2 flex items-center gap-1">
+                       <Download size={14} />
+                       Export & History
+                     </h3>
+                     <div className="grid grid-cols-2 gap-2">
+                       <button onClick={() => setIsHistoryModalOpen(true)} className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-gradient-to-r from-purple-500 to-violet-600 text-white font-semibold rounded-lg hover:from-purple-600 hover:to-violet-700 transition-all duration-300 shadow-md hover:shadow-lg hover:scale-105">
+                         <History size={16} />
+                         <span>History</span>
+                       </button>
+                       <button onClick={handleExport} className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-semibold rounded-lg hover:from-green-600 hover:to-emerald-700 transition-all duration-300 shadow-md hover:shadow-lg hover:scale-105">
+                         <Download size={16} />
+                         <span>Export</span>
+                       </button>
+                     </div>
+                   </div>
+                 )}
 
                  {/* Add Resources */}
                  <div className="mb-4 p-3 rounded-lg bg-gradient-to-br from-orange-500/5 to-red-500/5 border border-orange-300 dark:border-orange-700">
@@ -1006,6 +1113,14 @@ const DeadlockPage: React.FC = () => {
           Deadlock is a critical issue in concurrent systems where processes wait indefinitely for resources held by each other. Understanding the four necessary conditions (mutual exclusion, hold and wait, no preemption, circular wait) is essential. The <strong>Banker's Algorithm</strong> provides a proactive avoidance strategy by ensuring the system remains in a safe state, while <strong>Resource Allocation Graph (RAG)</strong> visualization helps detect circular wait conditions. In practice, most operating systems use a combination of prevention, avoidance, and detection strategies to manage deadlocks effectively.
         </p>
       </Card>
+
+      {/* Simulation History Modal */}
+      <SimulationHistoryModal
+        isOpen={isHistoryModalOpen}
+        onClose={() => setIsHistoryModalOpen(false)}
+        onReplay={handleReplay}
+        simulationType="deadlock"
+      />
 
       <style>{`
         .btn-primary { @apply flex items-center justify-center gap-2 px-3 sm:px-4 py-2 bg-accent text-white font-semibold rounded-lg shadow-md hover:bg-accent-hover transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed; }

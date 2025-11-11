@@ -3,7 +3,10 @@ import type { MemoryAlgorithm, MemoryBlock, MemoryProcess, MemoryMetrics } from 
 import Card from '../components/Card';
 import MemoryBar from '../components/MemoryBar';
 import ConfirmationModal from '../components/ConfirmationModal';
-import { Trash2, Plus, RotateCcw, Server, Cog, Box, AlertCircle, Grid2X2 } from 'lucide-react';
+import SimulationHistoryModal from '../components/SimulationHistoryModal';
+import { Trash2, Plus, RotateCcw, Server, Cog, Box, AlertCircle, Grid2X2, Download, History, FileDown, FileText } from 'lucide-react';
+import { useSimulationHistory, SimulationHistoryEntry } from '../hooks/useSimulationHistory';
+import { exportAsJSON, generateDetailedReport } from '../utils/exportUtils';
 
 const MemoryManagementPage: React.FC = () => {
   const [totalMemory, setTotalMemory] = useState(1024);
@@ -23,6 +26,11 @@ const MemoryManagementPage: React.FC = () => {
   });
   const [errorMessage, setErrorMessage] = useState('');
   const [isResetModalOpen, setResetModalOpen] = useState(false);
+  
+  // Export and History state
+  const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
+  const [showExportMenu, setShowExportMenu] = useState(false);
+  const { addToHistory } = useSimulationHistory();
 
   const resetSimulation = () => {
     const newBlocks: MemoryBlock[] = [];
@@ -219,6 +227,82 @@ const MemoryManagementPage: React.FC = () => {
 
   const findProcessBlock = (processId: number) => memoryBlocks.find(b => b.processId === processId);
 
+  // Export handler - saves current memory state
+  const handleSaveState = () => {
+    const stateData = {
+      timestamp: new Date().toISOString(),
+      algorithm,
+      totalMemory,
+      initialPartitions,
+      memoryBlocks,
+      allocatedProcesses,
+      metrics,
+      nextProcessId,
+      nextBlockId
+    };
+
+    addToHistory({
+      simulationType: 'memory-management',
+      algorithm,
+      processes: allocatedProcesses.map(p => ({
+        id: p.id,
+        name: p.name,
+        arrivalTime: 0,
+        burstTime: p.size,
+        priority: 0
+      })),
+      result: {
+        ganttChart: [],
+        processMetrics: allocatedProcesses.map(p => ({
+          id: p.id,
+          name: p.name,
+          arrivalTime: 0,
+          burstTime: p.size,
+          completionTime: 0,
+          turnaroundTime: 0,
+          waitingTime: 0,
+          priority: 0
+        })),
+        metrics: {
+          averageWaitingTime: 0,
+          averageTurnaroundTime: 0,
+          cpuUtilization: metrics.usagePercentage
+        },
+        totalDuration: totalMemory
+      },
+      name: `${algorithm} - ${allocatedProcesses.length} processes`
+    });
+  };
+
+  const handleExport = (format: 'json') => {
+    const timestamp = new Date().toISOString().split('T')[0];
+    const filename = `memory-management-${algorithm.toLowerCase()}-${timestamp}`;
+
+    const exportData = {
+      timestamp: new Date().toISOString(),
+      algorithm,
+      configuration: {
+        totalMemory,
+        initialPartitions
+      },
+      memoryBlocks,
+      allocatedProcesses,
+      metrics
+    };
+
+    if (format === 'json') {
+      exportAsJSON(exportData, filename);
+    }
+
+    setShowExportMenu(false);
+  };
+
+  const handleReplay = (entry: SimulationHistoryEntry) => {
+    // Memory management replay would need to restore full state
+    // For now, just close the modal
+    setIsHistoryModalOpen(false);
+  };
+
   return (
     <div className="space-y-8">
       <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-purple-500 via-indigo-500 to-blue-600 bg-clip-text text-transparent">Memory Management</h1>
@@ -306,6 +390,53 @@ const MemoryManagementPage: React.FC = () => {
                         <RotateCcw size={16} /> <span className="hidden sm:inline">Reset</span>
                     </button>
                 </div>
+                
+                {/* Export and History Controls */}
+                {allocatedProcesses.length > 0 && (
+                    <div className="flex gap-2">
+                        {/* History Button */}
+                        <button
+                            onClick={() => setIsHistoryModalOpen(true)}
+                            className="flex-1 flex items-center justify-center gap-2 px-3 sm:px-4 py-2 bg-gradient-to-r from-purple-500 to-violet-600 text-white font-semibold rounded-lg shadow-md hover:from-purple-600 hover:to-violet-700 transition-all duration-300"
+                        >
+                            <History size={16} />
+                            <span className="hidden sm:inline">History</span>
+                        </button>
+
+                        {/* Export Dropdown */}
+                        <div className="flex-1 relative">
+                            <button
+                                onClick={() => setShowExportMenu(!showExportMenu)}
+                                className="w-full flex items-center justify-center gap-2 px-3 sm:px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-semibold rounded-lg shadow-md hover:from-green-600 hover:to-emerald-700 transition-all duration-300"
+                            >
+                                <Download size={16} />
+                                <span className="hidden sm:inline">Export</span>
+                            </button>
+
+                            {showExportMenu && (
+                                <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-border-light dark:border-border-dark z-10">
+                                    <button
+                                        onClick={() => handleExport('json')}
+                                        className="w-full flex items-center gap-2 px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-left rounded-t-lg rounded-b-lg transition-colors"
+                                    >
+                                        <FileDown size={16} />
+                                        <span className="text-sm">Export as JSON</span>
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Save State Button */}
+                        <button
+                            onClick={handleSaveState}
+                            className="flex items-center justify-center gap-2 px-3 sm:px-4 py-2 bg-gradient-to-r from-blue-500 to-cyan-600 text-white font-semibold rounded-lg shadow-md hover:from-blue-600 hover:to-cyan-700 transition-all duration-300"
+                            title="Save current state to history"
+                        >
+                            <FileDown size={16} />
+                            <span className="hidden sm:inline">Save</span>
+                        </button>
+                    </div>
+                )}
             </div>
           </Card>
           
@@ -390,15 +521,6 @@ const MemoryManagementPage: React.FC = () => {
             </Card>
         </div>
       </div>
-
-      <ConfirmationModal
-        isOpen={isResetModalOpen}
-        onClose={() => setResetModalOpen(false)}
-        onConfirm={resetSimulation}
-        title="Reset Simulation"
-        message="Are you sure you want to clear all allocated processes and reset the memory?"
-        confirmText="Reset"
-      />
 
       {/* Educational Content */}
       <Card className="p-4 sm:p-6">
@@ -496,6 +618,23 @@ const MemoryManagementPage: React.FC = () => {
           Memory management is a critical function of operating systems that ensures efficient utilization of RAM. <strong>Contiguous allocation</strong> techniques like First Fit, Best Fit, Worst Fit, and Next Fit each have trade-offs between speed and fragmentation. Modern systems use more sophisticated techniques like <strong>paging</strong> and <strong>segmentation</strong> to overcome the limitations of contiguous allocation, but understanding these fundamental algorithms is essential for grasping how memory is managed at a low level. The key challenge is balancing <strong>allocation speed</strong> with minimizing <strong>external fragmentation</strong> to maintain efficient memory usage.
         </p>
       </Card>
+
+      {/* Simulation History Modal */}
+      <SimulationHistoryModal
+        isOpen={isHistoryModalOpen}
+        onClose={() => setIsHistoryModalOpen(false)}
+        onReplay={handleReplay}
+        simulationType="memory-management"
+      />
+
+      {/* Reset Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={isResetModalOpen}
+        onClose={() => setResetModalOpen(false)}
+        onConfirm={resetSimulation}
+        title="Reset Memory Simulation"
+        message="Are you sure you want to reset the simulation? All allocated processes will be removed."
+      />
     </div>
   );
 };

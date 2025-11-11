@@ -1,7 +1,10 @@
 
 import React, { useState } from 'react';
 import Card from '../components/Card';
-import { Play, RotateCcw, ChevronRight, ChevronLeft, HardDrive, Gauge, Zap, TrendingUp, ArrowRight, Activity, CheckCircle } from 'lucide-react';
+import SimulationHistoryModal from '../components/SimulationHistoryModal';
+import { Play, RotateCcw, ChevronRight, ChevronLeft, HardDrive, Gauge, Zap, TrendingUp, ArrowRight, Activity, CheckCircle, Download, History, FileDown, FileText } from 'lucide-react';
+import { useSimulationHistory, SimulationHistoryEntry } from '../hooks/useSimulationHistory';
+import { exportAsJSON, exportAsCSV, exportGanttAsText, generateDetailedReport, exportAsPDF } from '../utils/exportUtils';
 
 type DiskSchedulingAlgorithm = 'FCFS' | 'SSTF' | 'SCAN' | 'C-SCAN';
 
@@ -27,6 +30,11 @@ const DiskSchedulingPage: React.FC = () => {
   const [simulation, setSimulation] = useState<SimulationResult | null>(null);
   const [currentStep, setCurrentStep] = useState(0);
   const [isRunning, setIsRunning] = useState(false);
+  
+  // Export and History state
+  const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
+  const [showExportMenu, setShowExportMenu] = useState(false);
+  const { addToHistory } = useSimulationHistory();
 
   const parseRequestQueue = (str: string): number[] => {
     return str.split(',').map(s => parseInt(s.trim())).filter(n => !isNaN(n) && n >= 0 && n < diskSize);
@@ -205,12 +213,115 @@ const DiskSchedulingPage: React.FC = () => {
     setSimulation(result);
     setCurrentStep(0);
     setIsRunning(true);
+
+    // Save to history
+    const processes = requests.map((req, idx) => ({
+      id: idx + 1,
+      name: `Request ${req}`,
+      arrivalTime: 0,
+      burstTime: req,
+      priority: 0
+    }));
+
+    addToHistory({
+      simulationType: 'disk-scheduling',
+      algorithm,
+      processes,
+      result: {
+        ganttChart: result.steps.map((step, idx) => ({
+          processName: `${step.from}→${step.to}`,
+          start: idx,
+          duration: step.seekDistance
+        })),
+        processMetrics: processes.map(p => ({
+          ...p,
+          completionTime: 0,
+          turnaroundTime: 0,
+          waitingTime: 0
+        })),
+        metrics: {
+          averageWaitingTime: result.averageSeekTime,
+          averageTurnaroundTime: result.totalSeekTime,
+          cpuUtilization: 100
+        },
+        totalDuration: result.totalSeekTime
+      },
+      name: `${algorithm} - ${requests.length} requests`
+    });
   };
 
   const handleReset = () => {
     setSimulation(null);
     setCurrentStep(0);
     setIsRunning(false);
+  };
+
+  const handleExport = (format: 'json' | 'csv' | 'text' | 'pdf') => {
+    if (!simulation) return;
+
+    const timestamp = new Date().toISOString().split('T')[0];
+    const filename = `disk-scheduling-${algorithm.toLowerCase()}-${timestamp}`;
+
+    const requests = parseRequestQueue(requestQueue);
+    const processes = requests.map((req, idx) => ({
+      id: idx + 1,
+      name: `Request ${req}`,
+      arrivalTime: 0,
+      burstTime: req,
+      priority: 0
+    }));
+
+    const simulationResult = {
+      ganttChart: simulation.steps.map((step, idx) => ({
+        processName: `${step.from}→${step.to}`,
+        start: idx,
+        duration: step.seekDistance
+      })),
+      processMetrics: processes.map(p => ({
+        ...p,
+        completionTime: 0,
+        turnaroundTime: 0,
+        waitingTime: 0
+      })),
+      metrics: {
+        averageWaitingTime: simulation.averageSeekTime,
+        averageTurnaroundTime: simulation.totalSeekTime,
+        cpuUtilization: 100
+      },
+      totalDuration: simulation.totalSeekTime
+    };
+
+    switch (format) {
+      case 'json':
+        exportAsJSON(
+          generateDetailedReport(algorithm, processes, simulationResult),
+          filename
+        );
+        break;
+      case 'csv':
+        exportAsCSV(simulationResult, filename);
+        break;
+      case 'text':
+        exportGanttAsText(simulationResult, filename);
+        break;
+      case 'pdf':
+        exportAsPDF(algorithm, processes, simulationResult);
+        break;
+    }
+
+    setShowExportMenu(false);
+  };
+
+  const handleReplay = (entry: SimulationHistoryEntry) => {
+    const requests = entry.processes.map(p => p.burstTime);
+    setRequestQueue(requests.join(','));
+    setAlgorithm(entry.algorithm as DiskSchedulingAlgorithm);
+    setIsHistoryModalOpen(false);
+    
+    // Auto-run after a brief delay
+    setTimeout(() => {
+      handleRunSimulation();
+    }, 100);
   };
 
   const handleNext = () => {
@@ -398,13 +509,68 @@ const DiskSchedulingPage: React.FC = () => {
             </button>
 
             {isRunning && (
-              <button
-                onClick={handleReset}
-                className="flex items-center gap-2 px-6 py-2 bg-gray-200 dark:bg-gray-700 text-text-light dark:text-text-dark rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-all duration-300 font-medium"
-              >
-                <RotateCcw size={18} />
-                Reset
-              </button>
+              <>
+                <button
+                  onClick={handleReset}
+                  className="flex items-center gap-2 px-6 py-2 bg-gray-200 dark:bg-gray-700 text-text-light dark:text-text-dark rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-all duration-300 font-medium"
+                >
+                  <RotateCcw size={18} />
+                  Reset
+                </button>
+
+                {/* History Button */}
+                <button
+                  onClick={() => setIsHistoryModalOpen(true)}
+                  className="flex items-center gap-2 px-6 py-2 bg-gradient-to-r from-purple-500 to-violet-600 text-white rounded-lg hover:from-purple-600 hover:to-violet-700 transition-all duration-300 font-medium shadow-md hover:shadow-lg"
+                >
+                  <History size={18} />
+                  <span className="hidden sm:inline">History</span>
+                </button>
+
+                {/* Export Dropdown */}
+                <div className="relative">
+                  <button
+                    onClick={() => setShowExportMenu(!showExportMenu)}
+                    className="flex items-center gap-2 px-6 py-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-lg hover:from-green-600 hover:to-emerald-700 transition-all duration-300 font-medium shadow-md hover:shadow-lg"
+                  >
+                    <Download size={18} />
+                    <span className="hidden sm:inline">Export</span>
+                  </button>
+
+                  {showExportMenu && (
+                    <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-border-light dark:border-border-dark z-10">
+                      <button
+                        onClick={() => handleExport('json')}
+                        className="w-full flex items-center gap-2 px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-left rounded-t-lg transition-colors"
+                      >
+                        <FileDown size={16} />
+                        <span className="text-sm">Export as JSON</span>
+                      </button>
+                      <button
+                        onClick={() => handleExport('csv')}
+                        className="w-full flex items-center gap-2 px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-left transition-colors"
+                      >
+                        <FileText size={16} />
+                        <span className="text-sm">Export as CSV</span>
+                      </button>
+                      <button
+                        onClick={() => handleExport('text')}
+                        className="w-full flex items-center gap-2 px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-left transition-colors"
+                      >
+                        <FileText size={16} />
+                        <span className="text-sm">Export as Text</span>
+                      </button>
+                      <button
+                        onClick={() => handleExport('pdf')}
+                        className="w-full flex items-center gap-2 px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-left rounded-b-lg transition-colors"
+                      >
+                        <FileDown size={16} />
+                        <span className="text-sm">Export as PDF</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </>
             )}
           </div>
         </div>
@@ -759,6 +925,14 @@ const DiskSchedulingPage: React.FC = () => {
           schedulers and storage configurations for modern systems, even as the underlying hardware evolves toward SSDs and NVMe drives.
         </p>
       </Card>
+
+      {/* Simulation History Modal */}
+      <SimulationHistoryModal
+        isOpen={isHistoryModalOpen}
+        onClose={() => setIsHistoryModalOpen(false)}
+        onReplay={handleReplay}
+        simulationType="disk-scheduling"
+      />
     </div>
   );
 };

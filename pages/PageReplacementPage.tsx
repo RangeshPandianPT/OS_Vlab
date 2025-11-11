@@ -1,7 +1,10 @@
 
 import React, { useState } from 'react';
 import Card from '../components/Card';
-import { Play, RotateCcw, ChevronRight, ChevronLeft, BookOpen, Layers, Clock, Zap, TrendingUp, CheckCircle } from 'lucide-react';
+import SimulationHistoryModal from '../components/SimulationHistoryModal';
+import { Play, RotateCcw, ChevronRight, ChevronLeft, BookOpen, Layers, Clock, Zap, TrendingUp, CheckCircle, Download, History, FileDown, FileText } from 'lucide-react';
+import { useSimulationHistory, SimulationHistoryEntry } from '../hooks/useSimulationHistory';
+import { exportAsJSON, exportAsCSV, exportGanttAsText, generateDetailedReport, exportAsPDF } from '../utils/exportUtils';
 
 type PageReplacementAlgorithm = 'FIFO' | 'LRU' | 'Optimal';
 
@@ -20,6 +23,11 @@ const PageReplacementPage: React.FC = () => {
   const [simulation, setSimulation] = useState<FrameState[]>([]);
   const [currentStep, setCurrentStep] = useState(0);
   const [isRunning, setIsRunning] = useState(false);
+  
+  // Export and History state
+  const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
+  const [showExportMenu, setShowExportMenu] = useState(false);
+  const { addToHistory } = useSimulationHistory();
 
   const parseReferenceString = (str: string): number[] => {
     return str.split(',').map(s => parseInt(s.trim())).filter(n => !isNaN(n));
@@ -213,12 +221,120 @@ const PageReplacementPage: React.FC = () => {
     setSimulation(states);
     setCurrentStep(0);
     setIsRunning(true);
+
+    // Save to history
+    const faults = states.filter(s => s.fault).length;
+    const hits = states.filter(s => s.hit).length;
+    
+    const processes = pages.map((page, idx) => ({
+      id: idx + 1,
+      name: `Page ${page}`,
+      arrivalTime: idx,
+      burstTime: page,
+      priority: 0
+    }));
+
+    addToHistory({
+      simulationType: 'page-replacement',
+      algorithm,
+      processes,
+      result: {
+        ganttChart: states.map((state, idx) => ({
+          processName: `P${state.currentPage}`,
+          start: idx,
+          duration: 1
+        })),
+        processMetrics: processes.map(p => ({
+          ...p,
+          completionTime: 0,
+          turnaroundTime: 0,
+          waitingTime: 0
+        })),
+        metrics: {
+          averageWaitingTime: faults,
+          averageTurnaroundTime: hits,
+          cpuUtilization: (hits / (hits + faults)) * 100
+        },
+        totalDuration: states.length
+      },
+      name: `${algorithm} - ${pages.length} pages, ${frameCount} frames`
+    });
   };
 
   const handleReset = () => {
     setSimulation([]);
     setCurrentStep(0);
     setIsRunning(false);
+  };
+
+  const handleExport = (format: 'json' | 'csv' | 'text' | 'pdf') => {
+    if (simulation.length === 0) return;
+
+    const timestamp = new Date().toISOString().split('T')[0];
+    const filename = `page-replacement-${algorithm.toLowerCase()}-${timestamp}`;
+
+    const pages = parseReferenceString(referenceString);
+    const faults = simulation.filter(s => s.fault).length;
+    const hits = simulation.filter(s => s.hit).length;
+    
+    const processes = pages.map((page, idx) => ({
+      id: idx + 1,
+      name: `Page ${page}`,
+      arrivalTime: idx,
+      burstTime: page,
+      priority: 0
+    }));
+
+    const simulationResult = {
+      ganttChart: simulation.map((state, idx) => ({
+        processName: `P${state.currentPage}`,
+        start: idx,
+        duration: 1
+      })),
+      processMetrics: processes.map(p => ({
+        ...p,
+        completionTime: 0,
+        turnaroundTime: 0,
+        waitingTime: 0
+      })),
+      metrics: {
+        averageWaitingTime: faults,
+        averageTurnaroundTime: hits,
+        cpuUtilization: (hits / (hits + faults)) * 100
+      },
+      totalDuration: simulation.length
+    };
+
+    switch (format) {
+      case 'json':
+        exportAsJSON(
+          generateDetailedReport(algorithm, processes, simulationResult),
+          filename
+        );
+        break;
+      case 'csv':
+        exportAsCSV(simulationResult, filename);
+        break;
+      case 'text':
+        exportGanttAsText(simulationResult, filename);
+        break;
+      case 'pdf':
+        exportAsPDF(algorithm, processes, simulationResult);
+        break;
+    }
+
+    setShowExportMenu(false);
+  };
+
+  const handleReplay = (entry: SimulationHistoryEntry) => {
+    const pages = entry.processes.map(p => p.burstTime);
+    setReferenceString(pages.join(','));
+    setAlgorithm(entry.algorithm as PageReplacementAlgorithm);
+    setIsHistoryModalOpen(false);
+    
+    setTimeout(() => {
+      handleRunSimulation();
+    }, 100);
   };
 
   const handleNext = () => {
@@ -348,13 +464,66 @@ const PageReplacementPage: React.FC = () => {
             </button>
             
             {isRunning && (
-              <button
-                onClick={handleReset}
-                className="flex items-center gap-2 px-6 py-2 bg-gray-200 dark:bg-gray-700 text-text-light dark:text-text-dark rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-all duration-300 font-medium"
-              >
-                <RotateCcw size={18} />
-                Reset
-              </button>
+              <>
+                <button
+                  onClick={handleReset}
+                  className="flex items-center gap-2 px-6 py-2 bg-gray-200 dark:bg-gray-700 text-text-light dark:text-text-dark rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-all duration-300 font-medium"
+                >
+                  <RotateCcw size={18} />
+                  Reset
+                </button>
+
+                <button
+                  onClick={() => setIsHistoryModalOpen(true)}
+                  className="flex items-center gap-2 px-6 py-2 bg-gradient-to-r from-purple-500 to-violet-600 text-white rounded-lg hover:from-purple-600 hover:to-violet-700 transition-all duration-300 font-medium shadow-md hover:shadow-lg"
+                >
+                  <History size={18} />
+                  <span className="hidden sm:inline">History</span>
+                </button>
+
+                <div className="relative">
+                  <button
+                    onClick={() => setShowExportMenu(!showExportMenu)}
+                    className="flex items-center gap-2 px-6 py-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-lg hover:from-green-600 hover:to-emerald-700 transition-all duration-300 font-medium shadow-md hover:shadow-lg"
+                  >
+                    <Download size={18} />
+                    <span className="hidden sm:inline">Export</span>
+                  </button>
+
+                  {showExportMenu && (
+                    <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-border-light dark:border-border-dark z-10">
+                      <button
+                        onClick={() => handleExport('json')}
+                        className="w-full flex items-center gap-2 px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-left rounded-t-lg transition-colors"
+                      >
+                        <FileDown size={16} />
+                        <span className="text-sm">Export as JSON</span>
+                      </button>
+                      <button
+                        onClick={() => handleExport('csv')}
+                        className="w-full flex items-center gap-2 px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-left transition-colors"
+                      >
+                        <FileText size={16} />
+                        <span className="text-sm">Export as CSV</span>
+                      </button>
+                      <button
+                        onClick={() => handleExport('text')}
+                        className="w-full flex items-center gap-2 px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-left transition-colors"
+                      >
+                        <FileText size={16} />
+                        <span className="text-sm">Export as Text</span>
+                      </button>
+                      <button
+                        onClick={() => handleExport('pdf')}
+                        className="w-full flex items-center gap-2 px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-left rounded-b-lg transition-colors"
+                      >
+                        <FileDown size={16} />
+                        <span className="text-sm">Export as PDF</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </>
             )}
           </div>
         </div>
@@ -569,6 +738,14 @@ const PageReplacementPage: React.FC = () => {
           across algorithms and understand how changes in workload and frame count affect performance. Modern systems combine these techniques with <strong>demand paging</strong> and <strong>working set management</strong> for efficient memory utilization.
         </p>
       </Card>
+
+      {/* Simulation History Modal */}
+      <SimulationHistoryModal
+        isOpen={isHistoryModalOpen}
+        onClose={() => setIsHistoryModalOpen(false)}
+        onReplay={handleReplay}
+        simulationType="page-replacement"
+      />
     </div>
   );
 };
