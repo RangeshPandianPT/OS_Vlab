@@ -823,12 +823,24 @@ const VisualizationPanel: React.FC<{state: SimState}> = ({state}) => {
                     <circle cx="0" cy="0" r="20" fill="none" stroke="#14b8a6" strokeWidth="2" className="animate-ping" opacity="0.5" />
                 </g>
             )}
-            {threads.map((t) => {
-                 let x = 75, y = 100 + t.id * 80;
-                 if (t.state === 'ACTIVE') { x = 200; y = 300; }
-                 if (t.state === 'WAITING') { x = 200; y = 100 + resources.queue.indexOf(t.id) * 50 }
-                 return <ThreadComponent key={t.id} t={t} x={x} y={y} />
-            })}
+              {threads.map((t, idx) => {
+                const total = threads.length || 1;
+                const topMargin = 60;
+                const bottomMargin = 60;
+                const containerHeight = 600 - topMargin - bottomMargin;
+                const slotHeight = containerHeight / total;
+                let x = 75;
+                let y = topMargin + (idx + 0.5) * slotHeight;
+
+                if (t.state === 'ACTIVE') { x = 200; y = 300; }
+                if (t.state === 'WAITING') {
+                 x = 200;
+                 const qIndex = resources.queue.indexOf(t.id);
+                 if (qIndex >= 0) y = 120 + qIndex * 50;
+                }
+
+                return <ThreadComponent key={t.id} t={t} x={x} y={y} />
+              })}
         </svg>;
         case 'SEMAPHORE': return <svg width="100%" height="100%" viewBox="0 0 400 600">
             <text x="200" y="30" textAnchor="middle" fontWeight="bold" fontSize="14" className="fill-current">Shared Buffer ({resources.buffer.length}/{config.bufferSize})</text>
@@ -850,10 +862,15 @@ const VisualizationPanel: React.FC<{state: SimState}> = ({state}) => {
             <text x="30" y="120" fontSize="12" className="fill-current font-semibold">Producers</text>
             <text x="320" y="120" fontSize="12" className="fill-current font-semibold">Consumers</text>
             {threads.map((t, i) => {
-                const isProducer = i < config.producers;
-                let x = isProducer ? 75 : 325;
-                let y = 150 + t.id * 70;
-                return <ThreadComponent key={t.id} t={t} x={x} y={y} />
+              const isProducer = i < config.producers;
+              const total = threads.length || 1;
+              const topMargin = 80;
+              const bottomMargin = 80;
+              const containerHeight = 600 - topMargin - bottomMargin;
+              const slotHeight = containerHeight / total;
+              let x = isProducer ? 75 : 325;
+              let y = topMargin + (i + 0.5) * slotHeight;
+              return <ThreadComponent key={t.id} t={t} x={x} y={y} />
             })}
         </svg>;
         case 'READERS_WRITERS': return <svg width="100%" height="100%" viewBox="0 0 400 600">
@@ -866,12 +883,17 @@ const VisualizationPanel: React.FC<{state: SimState}> = ({state}) => {
             <text x="50" y="80" fontSize="12" className="fill-current font-semibold">Readers</text>
             <text x="320" y="80" fontSize="12" className="fill-current font-semibold">Writers</text>
              {threads.map((t, i) => {
-                const isReader = i < config.readers;
-                let x = isReader ? 50 : 350;
-                let y = 100 + t.id * 60;
-                if(t.state === 'ACTIVE') { x = 200; y = 250 + (t.id % 4) * 40; }
-                if(t.state === 'WAITING') { x = isReader ? 120 : 280; y = 100 + resources.queue.findIndex((q:any) => q.id === t.id) * 50; }
-                return <ThreadComponent key={t.id} t={t} x={x} y={y} />
+              const isReader = i < config.readers;
+              const total = threads.length || 1;
+              const topMargin = 80;
+              const bottomMargin = 80;
+              const containerHeight = 600 - topMargin - bottomMargin;
+              const slotHeight = containerHeight / total;
+              let x = isReader ? 50 : 350;
+              let y = topMargin + (i + 0.5) * slotHeight;
+              if(t.state === 'ACTIVE') { x = 200; y = 250 + (i % 4) * 40; }
+              if(t.state === 'WAITING') { x = isReader ? 120 : 280; const qIdx = resources.queue.findIndex((q:any) => q.id === t.id); if (qIdx >= 0) y = 100 + qIdx * 50; }
+              return <ThreadComponent key={t.id} t={t} x={x} y={y} />
             })}
         </svg>;
         case 'DINING_PHILOSOPHERS': {
