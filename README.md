@@ -9,19 +9,22 @@ This repository contains a React + TypeScript single-page application built with
 
 ## Highlights
 
-- Interactive simulations: CPU scheduling (FCFS, SJF, Priority, RR, MLQ), disk scheduling, memory/paging visualizations, threads & synchronization demos, and deadlock scenarios.
-- Mobile-responsive UI with a compact header, collapsible navigation, and accessible interactive cards.
-- Designed for educators and students — easy to run locally and extend.
+- **Interactive simulations**: CPU scheduling (FCFS, SJF, Priority, RR, MLQ), disk scheduling, memory/paging visualizations, threads & synchronization demos, and deadlock scenarios.
+- **Context-Aware AI Tutor**: Integrated Google Gemini AI to provide real-time, interactive OS explanations based on the simulation page the user is viewing.
+- **Fluid Visualizations**: Educational UI enhanced with `framer-motion` to provide smooth, dynamic layout changes and Gantt Chart timeline growth to better understand algorithmic shifts.
+- **Mobile-responsive UI** with a compact header, collapsible navigation, accessible interactive cards, and light/dark theme toggle.
+- **Optimized Performance**: Code-split routing using `React.lazy` and `Suspense` ensures lightning-fast initialization times for classrooms with slow campus internet.
 
 ---
 
 ## Tech stack
 
-- React 19 + TypeScript
-- Vite (dev/build/preview) — fast local dev server
-- Tailwind CSS (via CDN config in `index.html`) for utility-first styling
-- Recharts (visualization) and lucide-react icons
-- Firebase (optional auth and persistence hooks included)
+- **React 19 + TypeScript**: Modern, type-safe functional components.
+- **Vite**: Ultra-fast dev server and production chunking/builds.
+- **Tailwind CSS**: Utility-first styling with dark-mode integration.
+- **Recharts & Framer-Motion**: Used for beautiful metrics charts and fluid UI animations.
+- **Google Generative AI (`@google/genai`)**: Powers the global contextual OS AI Tutor.
+- **Firebase**: For persistent simulation saving, user auth, and real-time collaboration scaffolding.
 
 ---
 
@@ -58,11 +61,12 @@ This section expands the quick-start information with configuration notes, proje
 
 ### Features
 
-- Interactive CPU scheduling simulations (FCFS, SJF, Priority, Round-Robin, Multi-Level Queue).
-- Memory management visualizations (contiguous allocation, paging, TLB behavior).
-- Disk scheduling examples (FCFS, SSTF, SCAN, C-SCAN) with step-by-step traces.
-- Thread synchronization demos (critical section, semaphores, mutexes) and deadlock scenarios with the Banker's algorithm.
-- Theme toggle (light/dark) and mobile-friendly layout.
+- **Interactive CPU scheduling simulations** (FCFS, SJF, Priority, Round-Robin, Multi-Level Queue).
+- **Memory management visualizations** (contiguous allocation, paging, TLB behavior) featuring dynamic memory block scaling.
+- **Disk scheduling examples** (FCFS, SSTF, SCAN, C-SCAN) with step-by-step traces.
+- **Thread synchronization demos** (critical section, semaphores, mutexes) and **deadlock scenarios** with the Banker's algorithm.
+- **AI Operating Systems Tutor**: A persistent chatbot powered by Google Gemini that explains concepts related directly to the user's current simulation page.
+- **Theme toggle** (light/dark) and fully mobile-friendly layout.
 
 ### Repo layout
 

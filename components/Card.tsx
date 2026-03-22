@@ -1,5 +1,5 @@
-
 import React from 'react';
+import { motion } from 'framer-motion';
 
 interface CardProps {
   children: React.ReactNode;
@@ -22,27 +22,34 @@ const Card: React.FC<CardProps> = ({ children, onClick, className = '' }) => {
     ${className}
   `;
 
+  const animationProps = {
+    initial: { opacity: 0, y: 10 },
+    animate: { opacity: 1, y: 0 },
+    transition: { duration: 0.4, ease: "easeOut" }
+  };
+
   // If interactive, expose keyboard accessibility
   if (isInteractive) {
     return (
-      <div
+      <motion.div
         role="button"
         tabIndex={0}
         className={cardClasses}
         onClick={onClick}
-        onKeyDown={(e) => {
+        onKeyDown={(e: React.KeyboardEvent<HTMLDivElement>) => {
           if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault();
             onClick?.();
           }
         }}
+        {...animationProps}
       >
         {children}
-      </div>
+      </motion.div>
     );
   }
 
-  return <div className={cardClasses}>{children}</div>;
+  return <motion.div className={cardClasses} {...animationProps}>{children}</motion.div>;
 };
 
 export default Card;

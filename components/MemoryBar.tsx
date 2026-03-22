@@ -1,4 +1,5 @@
 import React from 'react';
+import { motion } from 'framer-motion';
 import type { MemoryBlock } from '../types';
 
 interface MemoryBarProps {
@@ -63,9 +64,14 @@ const MemoryBar: React.FC<MemoryBarProps> = ({ blocks, totalSize }) => {
                     : processColors[(block.processId || 0) % processColors.length];
 
                 return (
-                    <div
+                    <motion.div
                         key={block.id}
-                        className="group absolute w-full flex flex-col items-center justify-center transition-all duration-300 ease-in-out border-b border-gray-400/50 dark:border-gray-500/50 text-white"
+                        layout
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.95 }}
+                        transition={{ type: "spring", stiffness: 300, damping: 25 }}
+                        className="group absolute w-full flex flex-col items-center justify-center border-b border-gray-400/50 dark:border-gray-500/50 text-white"
                         style={{
                             top: `${topPercentage}%`,
                             height: `${heightPercentage}%`,
@@ -87,7 +93,7 @@ const MemoryBar: React.FC<MemoryBarProps> = ({ blocks, totalSize }) => {
                             Size: {block.size} KB
                             <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-x-4 border-x-transparent border-t-4 border-t-gray-900"></div>
                         </div>
-                    </div>
+                    </motion.div>
                 );
             })}
         </div>

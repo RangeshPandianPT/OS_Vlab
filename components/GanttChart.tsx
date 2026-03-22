@@ -1,5 +1,5 @@
-
 import React from 'react';
+import { motion } from 'framer-motion';
 import type { GanttChartEntry } from '../types';
 
 interface GanttChartProps {
@@ -32,24 +32,29 @@ const GanttChart: React.FC<GanttChartProps> = ({ data, totalDuration }) => {
           const width = (entry.duration / totalDuration) * 100;
           return (
             <g key={index}>
-              <rect
+              <motion.rect
                 x={`${x}%`}
                 y="0"
-                width={`${width}%`}
                 height={chartHeight}
                 fill={processColors.get(entry.processName)}
                 className="opacity-80"
+                initial={{ width: 0 }}
+                animate={{ width: `${width}%` }}
+                transition={{ duration: 0.6, ease: "easeOut" }}
               />
-              <text
+              <motion.text
                 x={`${x + width / 2}%`}
                 y={chartHeight / 2}
                 dy=".3em"
                 textAnchor="middle"
                 fill="white"
-                className="font-bold text-sm"
+                className="font-bold text-sm pointer-events-none"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.3, delay: 0.4 }}
               >
                 {entry.processName}
-              </text>
+              </motion.text>
             </g>
           );
         })}
