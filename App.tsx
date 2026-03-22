@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, Suspense } from 'react';
 import type { Page } from './types';
 
 import Header from './components/Header';
@@ -6,21 +6,25 @@ import Footer from './components/Footer';
 import SideNav from './components/SideNav';
 import LoginModal from './components/LoginModal';
 import SignUpModal from './components/SignUpModal';
+import AiTutor from './components/AiTutor';
 
+// Keep HomePage eager for fast initial render
 import HomePage from './pages/HomePage';
-import CpuSchedulingPage from './pages/CpuSchedulingPage';
-import ProcessManagementPage from './pages/ProcessManagementPage';
-import MemoryManagementPage from './pages/MemoryManagementPage';
-import PageReplacementPage from './pages/PageReplacementPage';
-import DiskSchedulingPage from './pages/DiskSchedulingPage';
-import ThreadsAndSyncPage from './pages/ThreadsAndSyncPage';
-import DeadlockPage from './pages/DeadlockPage';
-import ComparisonPage from './pages/ComparisonPage';
-import SavedSimulationsPage from './pages/SavedSimulationsPage';
-import TopicsPage from './pages/TopicsPage';
-import DocsPage from './pages/DocsPage';
-import ProgressPage from './pages/ProgressPage';
-import AboutPage from './pages/AboutPage';
+
+// Lazy load the heavy simulation and secondary pages
+const CpuSchedulingPage = React.lazy(() => import('./pages/CpuSchedulingPage'));
+const ProcessManagementPage = React.lazy(() => import('./pages/ProcessManagementPage'));
+const MemoryManagementPage = React.lazy(() => import('./pages/MemoryManagementPage'));
+const PageReplacementPage = React.lazy(() => import('./pages/PageReplacementPage'));
+const DiskSchedulingPage = React.lazy(() => import('./pages/DiskSchedulingPage'));
+const ThreadsAndSyncPage = React.lazy(() => import('./pages/ThreadsAndSyncPage'));
+const DeadlockPage = React.lazy(() => import('./pages/DeadlockPage'));
+const ComparisonPage = React.lazy(() => import('./pages/ComparisonPage'));
+const SavedSimulationsPage = React.lazy(() => import('./pages/SavedSimulationsPage'));
+const TopicsPage = React.lazy(() => import('./pages/TopicsPage'));
+const DocsPage = React.lazy(() => import('./pages/DocsPage'));
+const ProgressPage = React.lazy(() => import('./pages/ProgressPage'));
+const AboutPage = React.lazy(() => import('./pages/AboutPage'));
 import { useAuth } from './hooks/useAuth';
 
 type ModalType = 'login' | 'signup' | null;
@@ -89,7 +93,16 @@ const App: React.FC = () => {
           )}
           <main className="flex-1 overflow-y-auto p-6 md:p-8">
             <div className={!isSimulationPage ? 'container mx-auto' : ''}>
-              {renderPage()}
+              <Suspense fallback={
+                <div className="flex h-full w-full items-center justify-center p-12">
+                  <div className="flex flex-col items-center space-y-4 text-text-muted dark:text-gray-400">
+                    <div className="h-8 w-8 animate-spin rounded-full border-4 border-current border-t-transparent"></div>
+                    <p className="text-sm font-medium">Loading module...</p>
+                  </div>
+                </div>
+              }>
+                {renderPage()}
+              </Suspense>
             </div>
             <Footer currentPage={page} />
           </main>
@@ -106,6 +119,7 @@ const App: React.FC = () => {
         onClose={() => setActiveModal(null)}
         onSwitchToLogin={() => setActiveModal('login')}
       />
+      <AiTutor currentPage={page} />
     </>
   );
 };
