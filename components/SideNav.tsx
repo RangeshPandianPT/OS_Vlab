@@ -1,7 +1,8 @@
 import React from 'react';
 import type { Page, CurrentUser } from '../types';
 import { MODULES, LogoIcon } from '../constants';
-import { User as UserIcon } from 'lucide-react';
+import { User as UserIcon, CheckCircle } from 'lucide-react';
+import { useQuizProgress } from '../hooks/useQuizProgress';
 
 interface SideNavProps {
     currentPage: Page;
@@ -11,6 +12,8 @@ interface SideNavProps {
 }
 
 const SideNav: React.FC<SideNavProps> = ({ currentPage, setPage, currentUser, openModal }) => {
+    const { isCompleted } = useQuizProgress();
+
     return (
         <aside className="w-64 flex-shrink-0 bg-card-light/30 dark:bg-card-dark/30 p-4 flex flex-col border-r border-border-light dark:border-border-dark hidden lg:flex">
             <button onClick={() => setPage('home')} className="flex items-center gap-2 px-2 text-xl font-bold text-text-light dark:text-text-dark mb-6 flex-shrink-0">
@@ -25,6 +28,7 @@ const SideNav: React.FC<SideNavProps> = ({ currentPage, setPage, currentUser, op
                 <nav className="flex flex-col gap-1">
                     {MODULES.map((module) => {
                         const isActive = currentPage === module.id;
+                        const completed = isCompleted(module.id);
                         return (
                             <button
                                 key={module.id}
@@ -37,7 +41,8 @@ const SideNav: React.FC<SideNavProps> = ({ currentPage, setPage, currentUser, op
                                 }`}
                             >
                                 <module.icon size={16} />
-                                <span>{module.name}</span>
+                                <span className="flex-1">{module.name}</span>
+                                {completed && <CheckCircle size={14} className="text-green-500" title="Completed" />}
                             </button>
                         );
                     })}

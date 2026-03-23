@@ -10,6 +10,7 @@ import Card from '../components/Card';
 import { Clock, Cpu, Zap, BookOpen, TrendingUp, CheckCircle, AlertCircle, Info, Download, History, FileDown, FileText } from 'lucide-react';
 import { useSimulationHistory, SimulationHistoryEntry } from '../hooks/useSimulationHistory';
 import { exportAsJSON, exportAsCSV, exportGanttAsText, getFormattedDate, generateDetailedReport, exportAsPDF } from '../utils/exportUtils';
+import QuizModal from '../components/QuizModal';
 
 const defaultProcesses: Process[] = [
   { id: 1, name: 'P1', arrivalTime: 0, burstTime: 8, priority: 2 },
@@ -83,6 +84,7 @@ const CpuSchedulingPage: React.FC = () => {
     const [isResetModalOpen, setResetModalOpen] = useState(false);
     const [isHistoryModalOpen, setHistoryModalOpen] = useState(false);
     const [showExportMenu, setShowExportMenu] = useState(false);
+    const [isQuizOpen, setIsQuizOpen] = useState(false);
     
     const { addToHistory } = useSimulationHistory();
 
@@ -163,7 +165,16 @@ const CpuSchedulingPage: React.FC = () => {
 
     return (
         <div className="space-y-8">
-            <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-500 via-cyan-500 to-indigo-600 bg-clip-text text-transparent">CPU Scheduling</h1>
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-500 via-cyan-500 to-indigo-600 bg-clip-text text-transparent">CPU Scheduling</h1>
+                <button
+                    onClick={() => setIsQuizOpen(true)}
+                    className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-semibold rounded-lg hover:from-indigo-600 hover:to-purple-700 transition-all duration-300 shadow-md hover:shadow-lg"
+                >
+                    <BookOpen size={18} />
+                    <span>Take Quiz</span>
+                </button>
+            </div>
             
             {/* Educational Overview */}
             <Card className="p-4 sm:p-6 bg-gradient-to-br from-blue-500/5 via-cyan-500/5 to-indigo-500/5 border-blue-200 dark:border-blue-800">
@@ -296,6 +307,12 @@ const CpuSchedulingPage: React.FC = () => {
                 onClose={() => setHistoryModalOpen(false)}
                 onReplay={handleReplay}
                 simulationType="cpu-scheduling"
+            />
+            
+            <QuizModal 
+                isOpen={isQuizOpen} 
+                onClose={() => setIsQuizOpen(false)} 
+                moduleId="cpu-scheduling" 
             />
         </div>
     );
