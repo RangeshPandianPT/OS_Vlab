@@ -6,6 +6,7 @@ import { Play, Pause, RotateCcw, SkipForward, ChevronDown, ChevronUp, Lock, User
 import AnimatedNumber from '../components/AnimatedNumber';
 import { useSimulationHistory, SimulationHistoryEntry } from '../hooks/useSimulationHistory';
 import { exportAsJSON } from '../utils/exportUtils';
+import QuizModal from '../components/QuizModal';
 
 // --- CONSTANTS & CONFIGS ---
 const THREAD_COLORS = ['#3b82f6', '#10b981', '#ef4444', '#f97316', '#8b5cf6', '#ec4899', '#6366f1', '#f59e0b'];
@@ -354,6 +355,7 @@ const ThreadsAndSyncPage: React.FC = () => {
 
   // Export and History state
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
+  const [isQuizOpen, setIsQuizOpen] = useState(false);
   const { addToHistory } = useSimulationHistory();
 
   const startSimulation = useCallback(() => {
@@ -451,7 +453,16 @@ const ThreadsAndSyncPage: React.FC = () => {
 
   return (
     <div className="space-y-6 md:space-y-8">
-      <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-teal-500 via-cyan-500 to-blue-600 bg-clip-text text-transparent">Threads & Synchronization</h1>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-teal-500 via-cyan-500 to-blue-600 bg-clip-text text-transparent">Threads & Synchronization</h1>
+        <button
+            onClick={() => setIsQuizOpen(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-teal-500 to-blue-600 text-white font-semibold rounded-lg hover:from-teal-600 hover:to-blue-700 transition-all duration-300 shadow-md hover:shadow-lg"
+        >
+            <BookOpen size={18} />
+            <span>Take Quiz</span>
+        </button>
+      </div>
 
       {/* Educational Overview */}
       <Card className="p-4 sm:p-6 bg-gradient-to-br from-teal-500/5 via-cyan-500/5 to-blue-500/5 border-teal-200 dark:border-teal-800">
@@ -669,6 +680,12 @@ const ThreadsAndSyncPage: React.FC = () => {
         onClose={() => setIsHistoryModalOpen(false)}
         onReplay={handleReplay}
         simulationType="threads-sync"
+      />
+
+      <QuizModal 
+          isOpen={isQuizOpen} 
+          onClose={() => setIsQuizOpen(false)} 
+          moduleId="threads-sync" 
       />
 
       <style>{`

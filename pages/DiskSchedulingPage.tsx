@@ -5,6 +5,8 @@ import SimulationHistoryModal from '../components/SimulationHistoryModal';
 import { Play, RotateCcw, ChevronRight, ChevronLeft, HardDrive, Gauge, Zap, TrendingUp, ArrowRight, Activity, CheckCircle, Download, History, FileDown, FileText } from 'lucide-react';
 import { useSimulationHistory, SimulationHistoryEntry } from '../hooks/useSimulationHistory';
 import { exportAsJSON, exportAsCSV, exportGanttAsText, generateDetailedReport, exportAsPDF } from '../utils/exportUtils';
+import { BookOpen } from 'lucide-react';
+import QuizModal from '../components/QuizModal';
 
 type DiskSchedulingAlgorithm = 'FCFS' | 'SSTF' | 'SCAN' | 'C-SCAN';
 
@@ -34,6 +36,7 @@ const DiskSchedulingPage: React.FC = () => {
   // Export and History state
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
   const [showExportMenu, setShowExportMenu] = useState(false);
+  const [isQuizOpen, setIsQuizOpen] = useState(false);
   const { addToHistory } = useSimulationHistory();
 
   const parseRequestQueue = (str: string): number[] => {
@@ -347,7 +350,16 @@ const DiskSchedulingPage: React.FC = () => {
 
   return (
     <div className="space-y-6 md:space-y-8">
-      <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-orange-500 via-amber-500 to-yellow-500 bg-clip-text text-transparent">Disk Scheduling Simulation</h1>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-orange-500 via-amber-500 to-yellow-500 bg-clip-text text-transparent">Disk Scheduling Simulation</h1>
+        <button
+            onClick={() => setIsQuizOpen(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-orange-500 to-red-600 text-white font-semibold rounded-lg hover:from-orange-600 hover:to-red-700 transition-all duration-300 shadow-md hover:shadow-lg"
+        >
+            <BookOpen size={18} />
+            <span>Take Quiz</span>
+        </button>
+      </div>
 
       {/* Educational Overview */}
       <Card className="p-4 sm:p-6 bg-gradient-to-br from-orange-500/5 via-amber-500/5 to-yellow-500/5 border-orange-200 dark:border-orange-800">
@@ -932,6 +944,12 @@ const DiskSchedulingPage: React.FC = () => {
         onClose={() => setIsHistoryModalOpen(false)}
         onReplay={handleReplay}
         simulationType="disk-scheduling"
+      />
+
+      <QuizModal 
+          isOpen={isQuizOpen} 
+          onClose={() => setIsQuizOpen(false)} 
+          moduleId="disk-scheduling" 
       />
     </div>
   );

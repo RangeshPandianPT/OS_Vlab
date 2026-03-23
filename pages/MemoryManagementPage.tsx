@@ -7,6 +7,8 @@ import SimulationHistoryModal from '../components/SimulationHistoryModal';
 import { Trash2, Plus, RotateCcw, Server, Cog, Box, AlertCircle, Grid2X2, Download, History, FileDown, FileText } from 'lucide-react';
 import { useSimulationHistory, SimulationHistoryEntry } from '../hooks/useSimulationHistory';
 import { exportAsJSON, generateDetailedReport } from '../utils/exportUtils';
+import { BookOpen } from 'lucide-react';
+import QuizModal from '../components/QuizModal';
 
 const MemoryManagementPage: React.FC = () => {
   const [totalMemory, setTotalMemory] = useState(1024);
@@ -30,6 +32,7 @@ const MemoryManagementPage: React.FC = () => {
   // Export and History state
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
   const [showExportMenu, setShowExportMenu] = useState(false);
+  const [isQuizOpen, setIsQuizOpen] = useState(false);
   const { addToHistory } = useSimulationHistory();
 
   const resetSimulation = () => {
@@ -305,7 +308,16 @@ const MemoryManagementPage: React.FC = () => {
 
   return (
     <div className="space-y-8">
-      <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-purple-500 via-indigo-500 to-blue-600 bg-clip-text text-transparent">Memory Management</h1>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-purple-500 via-indigo-500 to-blue-600 bg-clip-text text-transparent">Memory Management</h1>
+        <button
+            onClick={() => setIsQuizOpen(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-semibold rounded-lg hover:from-indigo-600 hover:to-purple-700 transition-all duration-300 shadow-md hover:shadow-lg"
+        >
+            <BookOpen size={18} />
+            <span>Take Quiz</span>
+        </button>
+      </div>
       
       {/* Educational Overview */}
       <Card className="p-4 sm:p-6 bg-gradient-to-br from-purple-500/5 via-indigo-500/5 to-blue-500/5 border-purple-200 dark:border-purple-800">
@@ -634,6 +646,12 @@ const MemoryManagementPage: React.FC = () => {
         onConfirm={resetSimulation}
         title="Reset Memory Simulation"
         message="Are you sure you want to reset the simulation? All allocated processes will be removed."
+      />
+
+      <QuizModal 
+          isOpen={isQuizOpen} 
+          onClose={() => setIsQuizOpen(false)} 
+          moduleId="memory-management" 
       />
     </div>
   );
