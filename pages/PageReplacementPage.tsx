@@ -2,11 +2,18 @@
 import React, { useState } from 'react';
 import Card from '../components/Card';
 import SimulationHistoryModal from '../components/SimulationHistoryModal';
+import ShareButton from '../components/ShareButton';
 import { Play, RotateCcw, ChevronRight, ChevronLeft, BookOpen, Layers, Clock, Zap, TrendingUp, CheckCircle, Download, History, FileDown, FileText } from 'lucide-react';
 import { useSimulationHistory, SimulationHistoryEntry } from '../hooks/useSimulationHistory';
 import { exportAsJSON, exportAsCSV, exportGanttAsText, generateDetailedReport, exportAsPDF } from '../utils/exportUtils';
+import { usePermalinkState } from '../hooks/usePermalinkState';
+import type { ToastType } from '../components/Toast';
 
 type PageReplacementAlgorithm = 'FIFO' | 'LRU' | 'Optimal';
+
+interface PageReplacementPageProps {
+  showToast?: (message: string, type: ToastType) => void;
+}
 
 interface FrameState {
   pages: (number | null)[];
@@ -16,10 +23,16 @@ interface FrameState {
   replacedIndex?: number;
 }
 
-const PageReplacementPage: React.FC = () => {
-  const [algorithm, setAlgorithm] = useState<PageReplacementAlgorithm>('FIFO');
-  const [referenceString, setReferenceString] = useState('7,0,1,2,0,3,0,4,2,3,0,3,2');
-  const [frameCount, setFrameCount] = useState(3);
+const PageReplacementPage: React.FC<PageReplacementPageProps> = ({ showToast }) => {
+  const initial = usePermalinkState('page-replacement', {
+    algorithm: 'FIFO' as PageReplacementAlgorithm,
+    referenceString: '7,0,1,2,0,3,0,4,2,3,0,3,2',
+    frameCount: 3,
+  });
+
+  const [algorithm, setAlgorithm] = useState<PageReplacementAlgorithm>(initial.algorithm);
+  const [referenceString, setReferenceString] = useState(initial.referenceString);
+  const [frameCount, setFrameCount] = useState(initial.frameCount);
   const [simulation, setSimulation] = useState<FrameState[]>([]);
   const [currentStep, setCurrentStep] = useState(0);
   const [isRunning, setIsRunning] = useState(false);
@@ -357,7 +370,14 @@ const PageReplacementPage: React.FC = () => {
 
   return (
     <div className="space-y-6 md:space-y-8">
-      <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-cyan-500 via-blue-500 to-indigo-600 bg-clip-text text-transparent">Page Replacement Simulation</h1>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-cyan-500 via-blue-500 to-indigo-600 bg-clip-text text-transparent">Page Replacement Simulation</h1>
+        <ShareButton
+          pageId="page-replacement"
+          getState={() => ({ algorithm, referenceString, frameCount })}
+          onToast={showToast}
+        />
+      </div>
       
       {/* Educational Overview */}
       <Card className="p-4 sm:p-6 bg-gradient-to-br from-cyan-500/5 via-blue-500/5 to-indigo-500/5 border-cyan-200 dark:border-cyan-800">

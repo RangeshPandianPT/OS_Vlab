@@ -7,6 +7,8 @@ import SideNav from './components/SideNav';
 import LoginModal from './components/LoginModal';
 import SignUpModal from './components/SignUpModal';
 import AiTutor from './components/AiTutor';
+import { ToastContainer, useToast, type ToastType } from './components/Toast';
+import { readStateFromUrl, updateUrlPage } from './utils/permalinkUtils';
 
 // Keep HomePage eager for fast initial render
 import HomePage from './pages/HomePage';
@@ -29,29 +31,45 @@ import { useAuth } from './hooks/useAuth';
 
 type ModalType = 'login' | 'signup' | null;
 
+/** Read initial page from ?page= query param if present */
+function getInitialPage(): Page {
+  try {
+    const { page } = readStateFromUrl();
+    if (page) return page;
+  } catch { /* ignore */ }
+  return 'home';
+}
+
 const App: React.FC = () => {
-  const [page, setPage] = useState<Page>('home');
+  const [page, setPageState] = useState<Page>(getInitialPage);
   const [activeModal, setActiveModal] = useState<ModalType>(null);
   const { currentUser } = useAuth();
+  const { toasts, showToast, dismissToast } = useToast();
+
+  /** Wraps the raw setter to keep the URL ?page= param in sync */
+  const setPage = (newPage: Page) => {
+    setPageState(newPage);
+    updateUrlPage(newPage);
+  };
 
   const renderPage = () => {
     switch (page) {
       case 'home':
         return <HomePage setPage={setPage} />;
       case 'cpu-scheduling':
-        return <CpuSchedulingPage />;
+        return <CpuSchedulingPage showToast={showToast} />;
       case 'process-management':
         return <ProcessManagementPage />;
       case 'memory-management':
-        return <MemoryManagementPage />;
+        return <MemoryManagementPage showToast={showToast} />;
       case 'page-replacement':
-        return <PageReplacementPage />;
+        return <PageReplacementPage showToast={showToast} />;
       case 'disk-scheduling':
-        return <DiskSchedulingPage />;
+        return <DiskSchedulingPage showToast={showToast} />;
       case 'threads-sync':
         return <ThreadsAndSyncPage />;
       case 'deadlocks':
-        return <DeadlockPage />;
+        return <DeadlockPage showToast={showToast} />;
       case 'comparison':
         return <ComparisonPage />;
       case 'saved-simulations':
@@ -120,6 +138,7 @@ const App: React.FC = () => {
         onSwitchToLogin={() => setActiveModal('login')}
       />
       <AiTutor currentPage={page} />
+      <ToastContainer toasts={toasts} onDismiss={dismissToast} />
     </>
   );
 };

@@ -7,10 +7,13 @@ import SimulationResults from '../components/SimulationResults';
 import ConfirmationModal from '../components/ConfirmationModal';
 import SimulationHistoryModal from '../components/SimulationHistoryModal';
 import Card from '../components/Card';
+import ShareButton from '../components/ShareButton';
 import { Clock, Cpu, Zap, BookOpen, TrendingUp, CheckCircle, AlertCircle, Info, Download, History, FileDown, FileText } from 'lucide-react';
 import { useSimulationHistory, SimulationHistoryEntry } from '../hooks/useSimulationHistory';
 import { exportAsJSON, exportAsCSV, exportGanttAsText, getFormattedDate, generateDetailedReport, exportAsPDF } from '../utils/exportUtils';
 import QuizModal from '../components/QuizModal';
+import { usePermalinkState } from '../hooks/usePermalinkState';
+import type { ToastType } from '../components/Toast';
 
 const defaultProcesses: Process[] = [
   { id: 1, name: 'P1', arrivalTime: 0, burstTime: 8, priority: 2 },
@@ -76,10 +79,20 @@ const runSimulationLogic = (
   };
 };
 
-const CpuSchedulingPage: React.FC = () => {
-    const [processes, setProcesses] = useState<Process[]>(defaultProcesses);
-    const [algorithm, setAlgorithm] = useState<SchedulingAlgorithm>('FCFS');
-    const [timeQuantum, setTimeQuantum] = useState(4);
+interface CpuSchedulingPageProps {
+    showToast?: (message: string, type: ToastType) => void;
+}
+
+const CpuSchedulingPage: React.FC<CpuSchedulingPageProps> = ({ showToast }) => {
+    const initial = usePermalinkState('cpu-scheduling', {
+        processes: defaultProcesses as Process[],
+        algorithm: 'FCFS' as SchedulingAlgorithm,
+        timeQuantum: 4,
+    });
+
+    const [processes, setProcesses] = useState<Process[]>(initial.processes);
+    const [algorithm, setAlgorithm] = useState<SchedulingAlgorithm>(initial.algorithm);
+    const [timeQuantum, setTimeQuantum] = useState(initial.timeQuantum);
     const [simulationResult, setSimulationResult] = useState<SimulationResult | null>(null);
     const [isResetModalOpen, setResetModalOpen] = useState(false);
     const [isHistoryModalOpen, setHistoryModalOpen] = useState(false);
@@ -167,13 +180,20 @@ const CpuSchedulingPage: React.FC = () => {
         <div className="space-y-8">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-500 via-cyan-500 to-indigo-600 bg-clip-text text-transparent">CPU Scheduling</h1>
-                <button
-                    onClick={() => setIsQuizOpen(true)}
-                    className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-semibold rounded-lg hover:from-indigo-600 hover:to-purple-700 transition-all duration-300 shadow-md hover:shadow-lg"
-                >
-                    <BookOpen size={18} />
-                    <span>Take Quiz</span>
-                </button>
+                <div className="flex items-center gap-2">
+                    <ShareButton
+                        pageId="cpu-scheduling"
+                        getState={() => ({ processes, algorithm, timeQuantum })}
+                        onToast={showToast}
+                    />
+                    <button
+                        onClick={() => setIsQuizOpen(true)}
+                        className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-semibold rounded-lg hover:from-indigo-600 hover:to-purple-700 transition-all duration-300 shadow-md hover:shadow-lg"
+                    >
+                        <BookOpen size={18} />
+                        <span>Take Quiz</span>
+                    </button>
+                </div>
             </div>
             
             {/* Educational Overview */}

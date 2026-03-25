@@ -2,13 +2,20 @@
 import React, { useState } from 'react';
 import Card from '../components/Card';
 import SimulationHistoryModal from '../components/SimulationHistoryModal';
+import ShareButton from '../components/ShareButton';
 import { Play, RotateCcw, ChevronRight, ChevronLeft, HardDrive, Gauge, Zap, TrendingUp, ArrowRight, Activity, CheckCircle, Download, History, FileDown, FileText } from 'lucide-react';
 import { useSimulationHistory, SimulationHistoryEntry } from '../hooks/useSimulationHistory';
 import { exportAsJSON, exportAsCSV, exportGanttAsText, generateDetailedReport, exportAsPDF } from '../utils/exportUtils';
 import { BookOpen } from 'lucide-react';
 import QuizModal from '../components/QuizModal';
+import { usePermalinkState } from '../hooks/usePermalinkState';
+import type { ToastType } from '../components/Toast';
 
 type DiskSchedulingAlgorithm = 'FCFS' | 'SSTF' | 'SCAN' | 'C-SCAN';
+
+interface DiskSchedulingPageProps {
+  showToast?: (message: string, type: ToastType) => void;
+}
 
 interface SeekStep {
   from: number;
@@ -23,12 +30,20 @@ interface SimulationResult {
   sequence: number[];
 }
 
-const DiskSchedulingPage: React.FC = () => {
-  const [algorithm, setAlgorithm] = useState<DiskSchedulingAlgorithm>('FCFS');
-  const [requestQueue, setRequestQueue] = useState('98,183,37,122,14,124,65,67');
-  const [initialHead, setInitialHead] = useState(53);
-  const [diskSize, setDiskSize] = useState(200);
-  const [direction, setDirection] = useState<'left' | 'right'>('right');
+const DiskSchedulingPage: React.FC<DiskSchedulingPageProps> = ({ showToast }) => {
+  const initial = usePermalinkState('disk-scheduling', {
+    algorithm: 'FCFS' as DiskSchedulingAlgorithm,
+    requestQueue: '98,183,37,122,14,124,65,67',
+    initialHead: 53,
+    diskSize: 200,
+    direction: 'right' as 'left' | 'right',
+  });
+
+  const [algorithm, setAlgorithm] = useState<DiskSchedulingAlgorithm>(initial.algorithm);
+  const [requestQueue, setRequestQueue] = useState(initial.requestQueue);
+  const [initialHead, setInitialHead] = useState(initial.initialHead);
+  const [diskSize, setDiskSize] = useState(initial.diskSize);
+  const [direction, setDirection] = useState<'left' | 'right'>(initial.direction);
   const [simulation, setSimulation] = useState<SimulationResult | null>(null);
   const [currentStep, setCurrentStep] = useState(0);
   const [isRunning, setIsRunning] = useState(false);
@@ -352,13 +367,20 @@ const DiskSchedulingPage: React.FC = () => {
     <div className="space-y-6 md:space-y-8">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-orange-500 via-amber-500 to-yellow-500 bg-clip-text text-transparent">Disk Scheduling Simulation</h1>
-        <button
-            onClick={() => setIsQuizOpen(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-orange-500 to-red-600 text-white font-semibold rounded-lg hover:from-orange-600 hover:to-red-700 transition-all duration-300 shadow-md hover:shadow-lg"
-        >
-            <BookOpen size={18} />
-            <span>Take Quiz</span>
-        </button>
+        <div className="flex items-center gap-2">
+          <ShareButton
+            pageId="disk-scheduling"
+            getState={() => ({ algorithm, requestQueue, initialHead, diskSize, direction })}
+            onToast={showToast}
+          />
+          <button
+              onClick={() => setIsQuizOpen(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-orange-500 to-red-600 text-white font-semibold rounded-lg hover:from-orange-600 hover:to-red-700 transition-all duration-300 shadow-md hover:shadow-lg"
+          >
+              <BookOpen size={18} />
+              <span>Take Quiz</span>
+          </button>
+        </div>
       </div>
 
       {/* Educational Overview */}
