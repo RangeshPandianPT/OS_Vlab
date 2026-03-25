@@ -3,9 +3,12 @@ import type { DeadlockProcessNode, DeadlockResourceNode, Allocation, Request, Ba
 import Card from '../components/Card';
 import Modal from '../components/Modal';
 import SimulationHistoryModal from '../components/SimulationHistoryModal';
+import ShareButton from '../components/ShareButton';
 import { Plus, Trash2, Link, Unlink, ShieldCheck, RotateCcw, AlertTriangle, Info, CheckCircle, XCircle, Zap, Download, History, FileDown, FileText } from 'lucide-react';
 import { useSimulationHistory, SimulationHistoryEntry } from '../hooks/useSimulationHistory';
 import { exportAsJSON } from '../utils/exportUtils';
+import { usePermalinkState } from '../hooks/usePermalinkState';
+import type { ToastType } from '../components/Toast';
 
 const RAG_WIDTH = 800;
 const RAG_HEIGHT = 500;
@@ -502,16 +505,28 @@ const hasCycle = (processes: DeadlockProcessNode[], resources: DeadlockResourceN
 
 
 // --- MAIN COMPONENT ---
-const DeadlockPage: React.FC = () => {
-  const [processes, setProcesses] = useState<DeadlockProcessNode[]>([]);
-  const [resources, setResources] = useState<DeadlockResourceNode[]>([]);
-  const [allocations, setAllocations] = useState<Allocation[]>([]);
-  const [requests, setRequests] = useState<Request[]>([]);
+interface DeadlockPageProps {
+  showToast?: (message: string, type: ToastType) => void;
+}
+
+const DeadlockPage: React.FC<DeadlockPageProps> = ({ showToast }) => {
+  const initial = usePermalinkState('deadlocks', {
+    processes: [] as DeadlockProcessNode[],
+    resources: [] as DeadlockResourceNode[],
+    allocations: [] as Allocation[],
+    requests: [] as Request[],
+    bankerState: null as BankerState | null,
+  });
+
+  const [processes, setProcesses] = useState<DeadlockProcessNode[]>(initial.processes);
+  const [resources, setResources] = useState<DeadlockResourceNode[]>(initial.resources);
+  const [allocations, setAllocations] = useState<Allocation[]>(initial.allocations);
+  const [requests, setRequests] = useState<Request[]>(initial.requests);
   const [log, setLog] = useState<LogEntry[]>([]);
   const [deadlockedInfo, setDeadlockedInfo] = useState<{ cycles: number[][], deadlockedNodes: Set<string> }>({ cycles: [], deadlockedNodes: new Set() });
   
   const [modal, setModal] = useState<'addResource' | 'request' | 'release' | 'banker' | 'bankerResult' | 'resolve' | null>(null);
-  const [bankerState, setBankerState] = useState<BankerState | null>(null);
+  const [bankerState, setBankerState] = useState<BankerState | null>(initial.bankerState);
   const [bankerResult, setBankerResult] = useState<BankerResult | null>(null);
 
   // Export and History state
@@ -763,7 +778,14 @@ const DeadlockPage: React.FC = () => {
   
   return (
     <div className="space-y-8">
-      <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-red-500 via-orange-500 to-red-600 bg-clip-text text-transparent">Deadlock Visualization</h1>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-red-500 via-orange-500 to-red-600 bg-clip-text text-transparent">Deadlock Visualization</h1>
+        <ShareButton
+          pageId="deadlocks"
+          getState={() => ({ processes, resources, allocations, requests, bankerState })}
+          onToast={showToast}
+        />
+      </div>
       
       {/* Educational Overview */}
       <Card className="p-4 sm:p-6 bg-gradient-to-br from-red-500/5 via-orange-500/5 to-amber-500/5 border-red-200 dark:border-red-800">

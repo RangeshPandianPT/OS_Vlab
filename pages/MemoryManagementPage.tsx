@@ -4,19 +4,33 @@ import Card from '../components/Card';
 import MemoryBar from '../components/MemoryBar';
 import ConfirmationModal from '../components/ConfirmationModal';
 import SimulationHistoryModal from '../components/SimulationHistoryModal';
+import ShareButton from '../components/ShareButton';
 import { Trash2, Plus, RotateCcw, Server, Cog, Box, AlertCircle, Grid2X2, Download, History, FileDown, FileText } from 'lucide-react';
 import { useSimulationHistory, SimulationHistoryEntry } from '../hooks/useSimulationHistory';
 import { exportAsJSON, generateDetailedReport } from '../utils/exportUtils';
 import { BookOpen } from 'lucide-react';
 import QuizModal from '../components/QuizModal';
+import { usePermalinkState } from '../hooks/usePermalinkState';
+import type { ToastType } from '../components/Toast';
 
-const MemoryManagementPage: React.FC = () => {
-  const [totalMemory, setTotalMemory] = useState(1024);
-  const [initialPartitions, setInitialPartitions] = useState(1);
+interface MemoryManagementPageProps {
+  showToast?: (message: string, type: ToastType) => void;
+}
+
+const MemoryManagementPage: React.FC<MemoryManagementPageProps> = ({ showToast }) => {
+  const initial = usePermalinkState('memory-management', {
+    algorithm: 'FIRST_FIT' as MemoryAlgorithm,
+    totalMemory: 1024,
+    initialPartitions: 1,
+    newProcessSize: 64,
+  });
+
+  const [totalMemory, setTotalMemory] = useState(initial.totalMemory);
+  const [initialPartitions, setInitialPartitions] = useState(initial.initialPartitions);
   const [memoryBlocks, setMemoryBlocks] = useState<MemoryBlock[]>([]);
   const [allocatedProcesses, setAllocatedProcesses] = useState<MemoryProcess[]>([]);
-  const [algorithm, setAlgorithm] = useState<MemoryAlgorithm>('FIRST_FIT');
-  const [newProcessSize, setNewProcessSize] = useState(64);
+  const [algorithm, setAlgorithm] = useState<MemoryAlgorithm>(initial.algorithm);
+  const [newProcessSize, setNewProcessSize] = useState(initial.newProcessSize);
   const [nextProcessId, setNextProcessId] = useState(1);
   const [nextBlockId, setNextBlockId] = useState(2);
   const [nextFitPointer, setNextFitPointer] = useState(0);
@@ -310,13 +324,20 @@ const MemoryManagementPage: React.FC = () => {
     <div className="space-y-8">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-purple-500 via-indigo-500 to-blue-600 bg-clip-text text-transparent">Memory Management</h1>
-        <button
-            onClick={() => setIsQuizOpen(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-semibold rounded-lg hover:from-indigo-600 hover:to-purple-700 transition-all duration-300 shadow-md hover:shadow-lg"
-        >
-            <BookOpen size={18} />
-            <span>Take Quiz</span>
-        </button>
+        <div className="flex items-center gap-2">
+          <ShareButton
+            pageId="memory-management"
+            getState={() => ({ algorithm, totalMemory, initialPartitions, newProcessSize })}
+            onToast={showToast}
+          />
+          <button
+              onClick={() => setIsQuizOpen(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-semibold rounded-lg hover:from-indigo-600 hover:to-purple-700 transition-all duration-300 shadow-md hover:shadow-lg"
+          >
+              <BookOpen size={18} />
+              <span>Take Quiz</span>
+          </button>
+        </div>
       </div>
       
       {/* Educational Overview */}
