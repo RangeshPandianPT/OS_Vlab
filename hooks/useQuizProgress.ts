@@ -1,4 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import { useAuth } from './useAuth';
+import {
+  saveQuizProgress as firebaseSaveQuizProgress,
+  getQuizProgress,
+  getUserQuizProgress,
+  type QuizProgress,
+} from '../utils/firestoreUtils';
 
 export interface ModuleProgress {
   completed: boolean;
@@ -12,6 +19,7 @@ export interface QuizProgressRecord {
 }
 
 export function useQuizProgress() {
+  const { currentUser } = useAuth();
   const [progress, setProgress] = useState<QuizProgressRecord>(() => {
     try {
       const stored = localStorage.getItem('os_vlab_quiz_progress');
@@ -22,6 +30,27 @@ export function useQuizProgress() {
     }
   });
 
+  const [firebaseProgress, setFirebaseProgress] = useState<QuizProgress[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  // Load from Firestore if user is logged in
+  useEffect(() => {
+    if (currentUser) {
+      setLoading(true);
+      getUserQuizProgress(currentUser)
+        .then((progress) => {
+          setFirebaseProgress(progress);
+        })
+        .catch((error) => {
+          console.warn('Failed to load quiz progress from Firestore', error);
+        })
+        .finally(() => {
+          setLoading(false);
+        });
+    }
+  }, [currentUser]);
+
+  // Save to localStorage
   useEffect(() => {
     try {
       localStorage.setItem('os_vlab_quiz_progress', JSON.stringify(progress));
@@ -30,7 +59,7 @@ export function useQuizProgress() {
     }
   }, [progress]);
 
-  const markCompleted = (moduleId: string, score: number) => {
+  const markCompleted = useCallback((moduleId: string, score: number) => {
     setProgress((prev) => {
       const existing = prev[moduleId] || { completed: false, score: 0, totalAttempts: 0 };
       
@@ -47,25 +76,44 @@ export function useQuizProgress() {
         }
       };
     });
-  };
 
-  const isCompleted = (moduleId: string): boolean => {
+    // Also save to Firestore if user is logged in
+    if (currentUser) {
+      const existing = progress[moduleId] || { completed: false, score: 0, totalAttempts: 0 };
+      const highestScore = Math.max(existing.score, score);
+      
+      firebaseSaveQuizProgress(currentUser, moduleId, highestScore, 100, {
+        timestamp: new Date().toISOString(),
+      }).catch((error) => {
+        console.warn('Failed to save quiz progress to Firestore', error);
+      });
+    }
+  }, [currentUser, progress]);
+
+  const isCompleted = useCallback((moduleId: string): boolean => {
     return progress[moduleId]?.completed || false;
-  };
+  }, [progress]);
 
-  const getScore = (moduleId: string): number | null => {
+  const getScore = useCallback((moduleId: string): number | null => {
     return progress[moduleId] ? progress[moduleId].score : null;
-  };
+  }, [progress]);
 
-  const clearProgress = () => {
+  const clearProgress = useCallback(() => {
     setProgress({});
-  };
+    try {
+      localStorage.removeItem('os_vlab_quiz_progress');
+    } catch (error) {
+      console.warn('Failed to clear quiz progress from local storage', error);
+    }
+  }, []);
 
   return {
     progress,
+    firebaseProgress,
     markCompleted,
     isCompleted,
     getScore,
-    clearProgress
+    clearProgress,
+    loading
   };
 }
