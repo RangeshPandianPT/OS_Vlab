@@ -6,9 +6,10 @@ import SimulationControls from '../components/SimulationControls';
 import SimulationResults from '../components/SimulationResults';
 import ConfirmationModal from '../components/ConfirmationModal';
 import SimulationHistoryModal from '../components/SimulationHistoryModal';
+import SaveSimulationModal from '../components/SaveSimulationModal';
 import Card from '../components/Card';
 import ShareButton from '../components/ShareButton';
-import { Clock, Cpu, Zap, BookOpen, TrendingUp, CheckCircle, AlertCircle, Info, Download, History, FileDown, FileText } from 'lucide-react';
+import { Clock, Cpu, Zap, BookOpen, TrendingUp, CheckCircle, AlertCircle, Info, Download, History, FileDown, FileText, Save } from 'lucide-react';
 import { useSimulationHistory, SimulationHistoryEntry } from '../hooks/useSimulationHistory';
 import { exportAsJSON, exportAsCSV, exportGanttAsText, getFormattedDate, generateDetailedReport, exportAsPDF } from '../utils/exportUtils';
 import QuizModal from '../components/QuizModal';
@@ -96,6 +97,7 @@ const CpuSchedulingPage: React.FC<CpuSchedulingPageProps> = ({ showToast }) => {
     const [simulationResult, setSimulationResult] = useState<SimulationResult | null>(null);
     const [isResetModalOpen, setResetModalOpen] = useState(false);
     const [isHistoryModalOpen, setHistoryModalOpen] = useState(false);
+    const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
     const [showExportMenu, setShowExportMenu] = useState(false);
     const [isQuizOpen, setIsQuizOpen] = useState(false);
     
@@ -264,48 +266,58 @@ const CpuSchedulingPage: React.FC<CpuSchedulingPageProps> = ({ showToast }) => {
                 </button>
 
                 {simulationResult && (
-                    <div className="relative">
+                    <>
                         <button
-                            onClick={() => setShowExportMenu(!showExportMenu)}
-                            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-semibold rounded-lg hover:from-green-600 hover:to-emerald-700 transition-all duration-300 shadow-md hover:shadow-lg hover:scale-105"
+                            onClick={() => setIsSaveModalOpen(true)}
+                            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-cyan-600 text-white font-semibold rounded-lg hover:from-blue-600 hover:to-cyan-700 transition-all duration-300 shadow-md hover:shadow-lg hover:scale-105"
                         >
-                            <Download size={18} />
-                            <span className="hidden sm:inline">Export</span>
+                            <Save size={18} />
+                            <span className="hidden sm:inline">Save</span>
                         </button>
 
-                        {showExportMenu && (
-                            <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-border-light dark:border-border-dark z-10">
-                                <button
-                                    onClick={() => handleExport('json')}
-                                    className="w-full flex items-center gap-2 px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-left rounded-t-lg transition-colors"
-                                >
-                                    <FileDown size={16} />
-                                    <span className="text-sm">Export as JSON</span>
-                                </button>
-                                <button
-                                    onClick={() => handleExport('csv')}
-                                    className="w-full flex items-center gap-2 px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-left transition-colors"
-                                >
-                                    <FileText size={16} />
-                                    <span className="text-sm">Export as CSV</span>
-                                </button>
-                                <button
-                                    onClick={() => handleExport('text')}
-                                    className="w-full flex items-center gap-2 px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-left transition-colors"
-                                >
-                                    <FileText size={16} />
-                                    <span className="text-sm">Export as Text</span>
-                                </button>
-                                <button
-                                    onClick={() => handleExport('pdf')}
-                                    className="w-full flex items-center gap-2 px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-left rounded-b-lg transition-colors"
-                                >
-                                    <FileDown size={16} />
-                                    <span className="text-sm">Export as PDF</span>
-                                </button>
-                            </div>
-                        )}
-                    </div>
+                        <div className="relative">
+                            <button
+                                onClick={() => setShowExportMenu(!showExportMenu)}
+                                className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-semibold rounded-lg hover:from-green-600 hover:to-emerald-700 transition-all duration-300 shadow-md hover:shadow-lg hover:scale-105"
+                            >
+                                <Download size={18} />
+                                <span className="hidden sm:inline">Export</span>
+                            </button>
+
+                            {showExportMenu && (
+                                <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-border-light dark:border-border-dark z-10">
+                                    <button
+                                        onClick={() => handleExport('json')}
+                                        className="w-full flex items-center gap-2 px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-left rounded-t-lg transition-colors"
+                                    >
+                                        <FileDown size={16} />
+                                        <span className="text-sm">Export as JSON</span>
+                                    </button>
+                                    <button
+                                        onClick={() => handleExport('csv')}
+                                        className="w-full flex items-center gap-2 px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-left transition-colors"
+                                    >
+                                        <FileText size={16} />
+                                        <span className="text-sm">Export as CSV</span>
+                                    </button>
+                                    <button
+                                        onClick={() => handleExport('text')}
+                                        className="w-full flex items-center gap-2 px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-left transition-colors"
+                                    >
+                                        <FileText size={16} />
+                                        <span className="text-sm">Export as Text</span>
+                                    </button>
+                                    <button
+                                        onClick={() => handleExport('pdf')}
+                                        className="w-full flex items-center gap-2 px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-left rounded-b-lg transition-colors"
+                                    >
+                                        <FileDown size={16} />
+                                        <span className="text-sm">Export as PDF</span>
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                    </>
                 )}
             </div>
 
@@ -327,6 +339,20 @@ const CpuSchedulingPage: React.FC<CpuSchedulingPageProps> = ({ showToast }) => {
                 onClose={() => setHistoryModalOpen(false)}
                 onReplay={handleReplay}
                 simulationType="cpu-scheduling"
+            />
+
+            <SaveSimulationModal
+                isOpen={isSaveModalOpen}
+                onClose={() => setIsSaveModalOpen(false)}
+                algorithmType="cpu-scheduling"
+                simulationState={{
+                    processes,
+                    algorithm,
+                    timeQuantum,
+                }}
+                defaultName={`${algorithm} - ${new Date().toLocaleDateString()}`}
+                ganttChartData={simulationResult?.ganttChart}
+                results={simulationResult?.metrics}
             />
             
             <QuizModal 
