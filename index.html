@@ -12,32 +12,50 @@
         theme: {
           extend: {
             colors: {
-              'bkg-light': '#f0f4f8',
-              'bkg-dark': '#0d1117',
-              'card-light': 'rgba(255, 255, 255, 0.6)',
-              'card-dark': 'rgba(23, 27, 34, 0.6)',
-              'border-light': 'rgba(209, 213, 219, 0.3)',
-              'border-dark': 'rgba(49, 54, 63, 0.3)',
-              'text-light': '#1f2937',
-              'text-dark': '#e5e7eb',
-              'text-muted-light': '#6b7280',
-              'text-muted-dark': '#9ca3af',
-              'accent': '#3b82f6',
-              'accent-hover': '#2563eb',
+              'bkg-light': '#f8fafc',
+              'bkg-dark': '#050505',
+              'card-light': 'rgba(255, 255, 255, 0.7)',
+              'card-dark': 'rgba(15, 15, 20, 0.65)',
+              'border-light': 'rgba(209, 213, 219, 0.4)',
+              'border-dark': 'rgba(255, 255, 255, 0.08)',
+              'text-light': '#0f172a',
+              'text-dark': '#f1f5f9',
+              'text-muted-light': '#64748b',
+              'text-muted-dark': '#94a3b8',
+              'accent': '#8b5cf6', // Violet
+              'accent-hover': '#7c3aed',
+              'neon-blue': '#3b82f6',
+              'neon-cyan': '#06b6d4',
             },
             fontFamily: {
               sans: ['Inter', 'sans-serif'],
+              display: ['Outfit', 'sans-serif'],
             },
             backdropBlur: {
               xl: '24px',
+              '2xl': '40px',
             },
+            animation: {
+              'grid-pan': 'gridPan 20s linear infinite',
+              'glow-pulse': 'glowPulse 3s ease-in-out infinite alternate',
+            },
+            keyframes: {
+              gridPan: {
+                '0%': { transform: 'translateY(0)' },
+                '100%': { transform: 'translateY(100px)' },
+              },
+              glowPulse: {
+                '0%': { opacity: '0.8', filter: 'blur(8px)' },
+                '100%': { opacity: '1', filter: 'blur(12px)' },
+              }
+            }
           },
         },
       };
     </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
   <script type="importmap">
 {
   "imports": {
@@ -55,7 +73,7 @@
 </script>
 <link rel="stylesheet" href="/index.css">
 </head>
-  <body class="bg-bkg-light dark:bg-bkg-dark text-text-light dark:text-text-dark font-sans transition-colors duration-300">
+  <body class="bg-bkg-light dark:bg-bkg-dark text-text-light dark:text-text-dark font-sans transition-colors duration-500 overflow-x-hidden antialiased selection:bg-accent/30 selection:text-accent-hover dark:selection:text-white">
     <div id="root"></div>
     <script type="module" src="/index.tsx"></script>
   </body>
