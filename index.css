@@ -1,32 +1,97 @@
-/* Custom base styles to improve typography, spacing, and mobile friendliness */
-/* This file complements the Tailwind CDN config in index.html */
-
+/* Custom base styles for Cyber-Glassmorphism aesthetic */
 html, body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   touch-action: manipulation;
 }
 
+/* Custom Scrollbar for a premium feel */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(139, 92, 246, 0.3);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(139, 92, 246, 0.6);
+}
+
 /* Improve links and focus outlines for accessibility */
 a { color: inherit; }
-a:focus { outline: 3px solid rgba(59,130,246,0.18); outline-offset: 2px; }
+a:focus { outline: 2px solid rgba(139, 92, 246, 0.5); outline-offset: 2px; }
 
 /* Make container slightly wider on large screens for an app feel */
-.container { max-width: 1100px; }
+.container { max-width: 1200px; }
 
-/* Smooth background gradient to look more modern */
-body.bg-bkg-light {
-  background-image: linear-gradient(180deg, rgba(247,250,252,0.6), rgba(240,244,248,0.6));
-}
-body.dark .bg-bkg-dark {
-  background-image: linear-gradient(180deg, rgba(8,10,12,0.6), rgba(14,17,20,0.6));
+/* Dynamic Background Grid and Glows */
+body {
+  position: relative;
+  z-index: 0;
 }
 
-/* Utility: larger touch targets for small screens */
-.touch-target { padding: 12px; border-radius: 10px; }
+/* Grid pattern for light mode */
+body.bg-bkg-light::before {
+  content: "";
+  position: absolute;
+  inset: -100px;
+  background-image: 
+    linear-gradient(to right, rgba(139, 92, 246, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(139, 92, 246, 0.05) 1px, transparent 1px);
+  background-size: 50px 50px;
+  z-index: -2;
+  pointer-events: none;
+  animation: gridPan 20s linear infinite;
+  -webkit-mask-image: radial-gradient(circle at center, black 40%, transparent 80%);
+  mask-image: radial-gradient(circle at center, black 40%, transparent 80%);
+}
+
+/* Grid pattern for dark mode */
+body.dark::before {
+  content: "";
+  position: absolute;
+  inset: -100px;
+  background-image: 
+    linear-gradient(to right, rgba(139, 92, 246, 0.1) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(139, 92, 246, 0.1) 1px, transparent 1px);
+  background-size: 50px 50px;
+  z-index: -2;
+  pointer-events: none;
+  animation: gridPan 20s linear infinite;
+  -webkit-mask-image: linear-gradient(to bottom, black 20%, transparent 90%);
+  mask-image: linear-gradient(to bottom, black 20%, transparent 90%);
+}
+
+/* Add a subtle glow behind everything in dark mode */
+body.dark::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 600px;
+  height: 400px;
+  background: radial-gradient(circle, rgba(139, 92, 246, 0.15) 0%, transparent 70%);
+  z-index: -1;
+  pointer-events: none;
+  filter: blur(40px);
+}
 
 /* Make images and SVG icons scale nicely */
 img, svg { max-width: 100%; height: auto; }
 
 /* Minor card polish when backdrop blur is active */
-.backdrop-blur-xl { backdrop-filter: blur(14px); }
+.backdrop-blur-xl { -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px); }
+.backdrop-blur-2xl { -webkit-backdrop-filter: blur(40px); backdrop-filter: blur(40px); }
+
+/* Typography utility for gradient text */
+.text-gradient {
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
