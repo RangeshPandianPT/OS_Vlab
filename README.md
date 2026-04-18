@@ -1,74 +1,62 @@
-
 # OS_VLab — Operating Systems Virtual Laboratory
 
-A compact, modern set of interactive operating systems simulations and visualizations for learning and teaching OS concepts (CPU scheduling, memory management, disk scheduling, threads & synchronization, deadlocks, and more).
+A modern, interactive set of operating systems simulations and visualizations designed to make learning and teaching OS concepts intuitive and engaging. Features include interactive simulations for CPU scheduling, memory management, disk scheduling, threads & synchronization, and deadlocks.
 
-This repository contains a React + TypeScript single-page application built with Vite and Tailwind (CDN config). The UI is mobile-first and supports light/dark themes.
+This repository contains a React + TypeScript single-page application built with Vite and Tailwind CSS. The UI is mobile-first, highly responsive, and supports light/dark themes.
 
 ---
 
-## Highlights
+## 🌟 Highlights
 
-- **Interactive simulations**: CPU scheduling (FCFS, SJF, Priority, RR, MLQ), disk scheduling, memory/paging visualizations, threads & synchronization demos, and deadlock scenarios.
-- **Context-Aware AI Tutor**: Integrated Google Gemini AI to provide real-time, interactive OS explanations based on the simulation page the user is viewing.
+- **Interactive Simulations**: CPU scheduling (FCFS, SJF, Priority, RR, MLQ), disk scheduling, memory/paging visualizations, threads & synchronization demos, and deadlock scenarios.
 - **Fluid Visualizations**: Educational UI enhanced with `framer-motion` to provide smooth, dynamic layout changes and Gantt Chart timeline growth to better understand algorithmic shifts.
-- **Mobile-responsive UI** with a compact header, collapsible navigation, accessible interactive cards, and light/dark theme toggle.
-- **Optimized Performance**: Code-split routing using `React.lazy` and `Suspense` ensures lightning-fast initialization times for classrooms with slow campus internet.
+- **Integrated Quizzes & Progress Tracking**: Every module features a contextual quiz to test student understanding, with scores aggregated on a personalized "Progress Page."
+- **Persistent States & Sharing**: Users can save simulation states to the cloud (Supabase) and share exact simulation configurations via permalinks.
+- **Mobile-Responsive UI**: Features a compact header, collapsible navigation, accessible interactive cards, and a robust light/dark theme toggle.
+- **Optimized Performance**: Built with Vite for rapid local development and optimized production asset chunking.
 
 ---
 
-## Tech stack
+## 🛠 Tech Stack
 
 - **React 19 + TypeScript**: Modern, type-safe functional components.
 - **Vite**: Ultra-fast dev server and production chunking/builds.
-- **Tailwind CSS**: Utility-first styling with dark-mode integration.
+- **Tailwind CSS**: Utility-first styling with integrated dark mode.
 - **Recharts & Framer-Motion**: Used for beautiful metrics charts and fluid UI animations.
-- **Google Generative AI (`@google/genai`)**: Powers the global contextual OS AI Tutor.
-- **Firebase**: For persistent simulation saving, user auth, and real-time collaboration scaffolding.
+- **Supabase**: Backend-as-a-Service for persistent simulation saving, user auth, and quiz progress tracking.
 
 ---
 
-## Quick start (local)
+## 🚀 Quick Start (Local)
 
 Prerequisites: Node.js (LTS) installed.
 
-1. Install dependencies
+### 1. Install dependencies
 
-```powershell
+```bash
 npm install
 ```
 
-2. Start the dev server
+### 2. Configure Environment
 
-```powershell
+Create a `.env` file in the root directory and add your Supabase credentials. See `.env.example` for the required format:
+
+```env
+VITE_SUPABASE_URL=your_supabase_project_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+```
+
+### 3. Start the Dev Server
+
+```bash
 npm run dev
 ```
 
-3. Open the local URL printed by Vite (usually http://localhost:5173) in your browser. The app is responsive — try a narrow viewport or mobile device.
+Open the local URL printed by Vite (usually `http://localhost:5173`) in your browser. 
 
-Notes:
+---
 
-
-## Expanded README — detailed guide
-
-This section expands the quick-start information with configuration notes, project structure, development tips, and deployment guidance. Use this as the canonical reference for working on OS_VLab.
-
-### Project goals
-
-- Provide an educational sandbox for operating systems concepts with interactive simulations and visualizations.
-- Remain lightweight and easy to run locally for instructors and students.
-- Allow easy extension: each simulation is modular and can be enhanced or added without changing app shell.
-
-### Features
-
-- **Interactive CPU scheduling simulations** (FCFS, SJF, Priority, Round-Robin, Multi-Level Queue).
-- **Memory management visualizations** (contiguous allocation, paging, TLB behavior) featuring dynamic memory block scaling.
-- **Disk scheduling examples** (FCFS, SSTF, SCAN, C-SCAN) with step-by-step traces.
-- **Thread synchronization demos** (critical section, semaphores, mutexes) and **deadlock scenarios** with the Banker's algorithm.
-- **AI Operating Systems Tutor**: A persistent chatbot powered by Google Gemini that explains concepts related directly to the user's current simulation page.
-- **Theme toggle** (light/dark) and fully mobile-friendly layout.
-
-### Repo layout
+## 📂 Project Structure
 
 Top-level files/folders you will work with:
 
@@ -77,136 +65,58 @@ Top-level files/folders you will work with:
   - `index.html` — head config (Tailwind CDN + fonts) and root container.
   - `index.tsx` — React entry.
   - `components/` — shared UI components (Header, SideNav, Card, Footer, Modals).
-  - `pages/` — each page/simulation lives here (CpuSchedulingPage, MemoryManagementPage, TopicsPage, DocsPage, etc.).
-  - `hooks/` — small React hooks (theme, auth).
+  - `pages/` — each page/simulation lives here (CpuSchedulingPage, MemoryManagementPage, ProgressPage, etc.).
+  - `hooks/` — small React hooks (theme, auth, simulation saver, permalinks).
   - `contexts/` — global context providers.
-  - `types.ts` — central TypeScript types and the `Page` union.
+  - `types.ts` — central TypeScript typings.
   - `constants.tsx` — icons, module lists, and small constants.
+  - `supabase.ts` & `utils/supabaseStore.ts` — Supabase client generation and data utilities.
 
-### Configuration & environment variables
+---
 
-- Firebase: the project includes `firebase.ts` and hooks for authentication. If you want to enable Firebase features (auth, saving simulations), provide your Firebase config via environment variables or edit `firebase.ts` with your project's config. Do not commit secrets.
-
-Suggested env variables (if you add dotenv integration):
-
-- `VITE_FIREBASE_API_KEY`, `VITE_FIREBASE_AUTH_DOMAIN`, `VITE_FIREBASE_PROJECT_ID`, etc.
-
-### Development
-
-1. Install dependencies
-
-```powershell
-npm install
-```
-
-2. Start dev server (fast incremental build)
-
-```powershell
-npm run dev
-```
-
-3. Open the local URL Vite prints (default: `http://localhost:5173`).
-
-Tips:
-- Use the browser devtools device toolbar to test mobile breakpoints.
-- The `Header` contains a mobile menu; `SideNav` is hidden on small screens — use the header menu to navigate.
+## 🛠 Development
 
 ### Production build
 
-```powershell
+```bash
 npm run build
 npm run preview
 ```
 
-`npm run build` outputs to `dist/` (Vite default). Serve this directory with your preferred static host (Netlify, Vercel, GitHub Pages with additional config, or any static server).
+`npm run build` outputs to `dist/` and runs the TypeScript compiler against your codebase. Serve this directory with your preferred static host (Netlify, Vercel, GitHub Pages).
 
-### Linting & type checking
+### Linting & Type Checking
 
-This repo currently includes TypeScript and can be extended with ESLint/Prettier. Recommended quick checks before PRs:
+This repo relies strictly on TypeScript for static type checking. Check for typing errors before submitting pull requests:
 
-```powershell
-npm run build   # catches type errors in many setups
-```
-
-Or add TypeScript-only check:
-
-```powershell
+```bash
 npx tsc --noEmit
 ```
 
-### Accessibility notes
+---
 
-- Interactive `Card` components are keyboard-accessible (Enter/Space) and have larger touch targets on mobile.
-- Focus outlines are emphasized in the global CSS (`index.css`).
+## 🤝 Contributing
+
+Contributions are welcome. A few suggestions to get started:
+
+1. Open an issue describing the feature or bug.
+2. Fork the repo and create a branch named `feat/<short-description>` or `fix/<short-description>`.
+3. Keep changes small and focused; add a short test or screenshot when appropriate.
+4. Submit a pull request and describe what you changed and why.
+
+For UI work, aim for mobile-first and accessible controls (keyboard focus, sufficient color contrast, and touch targets >= 44px).
 
 ### Adding a new simulation
 
 1. Create a new page under `pages/` (e.g., `MySimulationPage.tsx`) and export a React component.
 2. Add the page id to the `Page` union in `types.ts`.
 3. Add the page to `App.tsx` render switch and include an entry in `constants.MODULES` for the side nav.
-4. Use the shared `Card` and `Modal` components to keep UI consistent.
+4. Integrate the `SaveSimulationModal` for saving states and `QuizModal` for educational quizzes to maintain consistency.
 
-### Testing & QA
+---
 
-- Manual: use device emulation and test keyboard navigation and contrast in both light/dark modes.
-- Automated: consider adding a simple GitHub Action to run `npx tsc --noEmit` and `npm run build` on PRs.
-
-### CI suggestion (example)
-
-Add `.github/workflows/ci.yml` with these steps:
-- Checkout
-- Install Node
-- npm ci
-- npx tsc --noEmit
-- npm run build
-
-I can add this workflow for you if you'd like.
-
-### Screenshots / assets
-
-If you want screenshots embedded in the README, I can:
-
-- Run the dev server, capture a few responsive screenshots (desktop, tablet, phone), add them to `assets/`, and update the README to reference them.
-
-### Contributing
-
-Please follow these simple rules:
-
-1. Fork the repo and create a topic branch.
-2. Keep PRs small and descriptive.
-3. Include screenshots and a short description of UI or behavior changes.
-
-If you'd like, I can add a `CONTRIBUTING.md` template and a `CODE_OF_CONDUCT.md`.
-
-
-## Scripts
+## 📍 Scripts
 
 - `npm run dev` — start Vite dev server
 - `npm run build` — produce optimized production build
 - `npm run preview` — serve the built output locally
-
----
-
-## Contributing
-
-Contributions are welcome. A few suggestions to get started:
-
-1. Open an issue describing the feature or bug.
-2. Create a branch named `feat/<short-description>` or `fix/<short-description>`.
-3. Keep changes small and focused; add a short test or screenshot when appropriate.
-4. Submit a pull request and describe what you changed and why.
-
-For UI work, aim for mobile-first and accessible controls (keyboard focus, sufficient color contrast, and touch targets >= 44px).
-
----
-
-## Roadmap & ideas
-
-- Add a small CI workflow to run TypeScript checks and a build on pull requests.
-- Add interactive guided exercises and auto-graded quizzes for each simulation.
-- Add shareable permalinks for simulation states so students can share scenarios.
-
-
-
----
-
