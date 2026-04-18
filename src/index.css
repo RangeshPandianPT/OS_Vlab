@@ -1,0 +1,108 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* =========================================================
+   THEME: CSS Custom Properties
+   Colors are expressed as raw RGB channels so Tailwind's
+   opacity modifier syntax (e.g. bg-background/50) works.
+   ========================================================= */
+:root {
+  /* Light neumorphic palette */
+  --color-background:    224 229 236; /* #e0e5ec */
+  --color-panel:         240 242 245; /* #f0f2f5 */
+  --color-muted:         209 217 230; /* #d1d9e6 */
+  --color-text-primary:  45  52  54;  /* #2d3436 */
+  --color-text-muted:    74  85  104; /* #4a5568 */
+  --color-shadow-dark:   186 190 204; /* #babecc */
+  --color-shadow-light:  255 255 255; /* #ffffff */
+  --color-border-dark:   163 177 198; /* #a3b1c6 */
+
+  /* Neumorphic shadow helpers used in box-shadow utilities */
+  --shadow-dark:  #babecc;
+  --shadow-light: #ffffff;
+}
+
+.dark {
+  /* Dark neumorphic palette */
+  --color-background:    30  34  53;  /* #1e2235 */
+  --color-panel:         37  41  64;  /* #252940 */
+  --color-muted:         52  59  90;  /* #343b5a */
+  --color-text-primary:  226 232 240; /* #e2e8f0 */
+  --color-text-muted:    160 174 192; /* #a0aec0 */
+  --color-shadow-dark:   20  24  38;  /* #141826 */
+  --color-shadow-light:  58  66  97;  /* #3a4261 */
+  --color-border-dark:   46  55  85;  /* #2e3755 */
+
+  --shadow-dark:  #141826;
+  --shadow-light: #3a4261;
+}
+
+/* =========================================================
+   BASE RESETS
+   ========================================================= */
+html, body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  touch-action: manipulation;
+}
+
+/* Industrial Matte Plastic Micro-Texture Overlay */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  background-image: url('data:image/svg+xml;utf8,%3Csvg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"%3E%3Cfilter id="noiseFilter"%3E%3CfeTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch"/%3E%3C/filter%3E%3Crect width="100%25" height="100%25" filter="url(%23noiseFilter)"/%3E%3C/svg%3E');
+  opacity: 0.04;
+  mix-blend-mode: overlay;
+}
+
+/* =========================================================
+   SCROLLBAR
+   ========================================================= */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track {
+  background: rgb(var(--color-muted));
+  box-shadow: inset 2px 2px 5px var(--shadow-dark), inset -2px -2px 5px var(--shadow-light);
+}
+::-webkit-scrollbar-thumb {
+  background: rgb(var(--color-border-dark));
+  border-radius: 5px;
+  border: 2px solid rgb(var(--color-muted));
+}
+::-webkit-scrollbar-thumb:hover { background: rgb(var(--color-shadow-dark)); }
+
+/* =========================================================
+   ACCESSIBILITY
+   ========================================================= */
+a:focus-visible, button:focus-visible {
+  outline: 2px solid #ff4757;
+  outline-offset: 2px;
+}
+
+/* =========================================================
+   LAYOUT
+   ========================================================= */
+.container {
+  max-width: 1152px;
+  margin: 0 auto;
+}
+
+/* =========================================================
+   SELECTION
+   ========================================================= */
+::selection {
+  background: rgba(255, 71, 87, 0.3);
+  color: #ff4757;
+}
+
+/* =========================================================
+   COMPONENT UTILITIES
+   ========================================================= */
+@layer components {
+  .mechanical-inset {
+    box-shadow: inset 4px 4px 8px var(--shadow-dark), inset -4px -4px 8px var(--shadow-light);
+  }
+}
